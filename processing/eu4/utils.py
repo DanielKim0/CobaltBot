@@ -5,18 +5,18 @@ def add_quotes(string):
         return string
 
 # used to...
-DATEFILE_STRINGS = {
+LEADER_TEMPLATE = {
     "name": "",
     "dynasty": "",
     "claim": "",
     "adm": "",
     "dip": "",
     "mil": "",
+    "add_ruler_personality": "",
     "add_heir_personality": "",
-    "": "",
-    "": "",
-    "": "",
-    "": "",
-    "": "",
-    "": "",
+    "leader": "",
+    "fire": "",
+    "shock": "",
+    "manuever": "",
+    "siege": "",
 }

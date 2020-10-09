@@ -3,32 +3,33 @@ import codecs
 import ast
 import re
 from utils import *
-from eu4_parser import EU4_Parser
+from parser import EU4_Parser
 import datetime
 
-class EU4_Country_Parser(EU4_Parser):
+class EU4_Parser_Country(EU4_Parser):
     def __init__(self):
         super().__init__()
 
-    def parse_line(self, line):
+    def parse_lines(self, data):
         bracket = False
-        if not bracket and "{" in line:
-            bracket = True
-        if bracket:
-            return self.parse_bracket(line)
-        else:
-            return self.parse_bracketless(line)
-    
+        result = []
+        for line in data:
+            if not bracket and "{" in line:
+                bracket = True
+            if bracket:
+                result.append(self.parse_bracket(line))
+            else:
+                result.append(self.parse_bracketless(line))
+        return result
+
     def process_file(self, data):
         # get relevant data and 1444 royalty
         data = list(map(list, zip(*data)))
-        
-
+        return data
 
     def parse_bracketless(self, line):
         line = line.strip()
-        line = line.split(": ")
-        return line[0], line[1]
+        return line.split(": ")
 
     def parse_bracket(self, string):
         parts = self.sep_bracket(string)
@@ -78,6 +79,7 @@ class EU4_Country_Parser(EU4_Parser):
         return name, con
 
 if __name__ == "__main__":
-    p = EU4_Country_Parser()
-    result = p.parse_file("../raw_data/countries/AAC - Aachen.txt")
+    p = EU4_Parser_Country()
+    result = p.parse_file("../../raw_data/eu4/countries/KOR - Korea.txt")
+    # result = p.parse_file("../../raw_data/eu4/countries/FRA - France.txt")
     print(result)

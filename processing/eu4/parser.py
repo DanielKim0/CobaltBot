@@ -10,15 +10,21 @@ class EU4_Parser:
         # TODO
         pass
 
+    def parse_folder(self, path):
+        data = []
+        for filename in os.listdir(path):
+            data.append(self.parse_file(os.path.join(path, filename)))
+        return data
+
     def parse_file(self, path):
         with codecs.open(path, "r", encoding="iso-8859-1") as f:
             lines = f.readlines()
             separated = self.separate(lines)
-            data = self.parse_lines(separated)
+            data = self.parse_separate(separated)
         return self.process_file(data)
 
     @abstractmethod
-    def parse_lines(self, line):
+    def parse_separate(self, line):
         pass
 
     @abstractmethod
@@ -76,7 +82,7 @@ class EU4_Parser:
             if len(line) < 2:
                 return ""
             else:
-                line = line[0]
+                line = line[0] + "\n"
         line = line.replace("}", " }").replace("{", "{ ")
         while "=" in line:
             line = self.replace_equals(line)

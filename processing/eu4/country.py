@@ -10,7 +10,7 @@ class EU4_Parser_Country(EU4_Parser):
     def __init__(self):
         super().__init__()
 
-    def parse_lines(self, data):
+    def parse_separate(self, data):
         bracket = False
         result = []
         for line in data:

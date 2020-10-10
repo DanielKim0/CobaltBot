@@ -18,4 +18,4 @@ class EU4_Idea_Parser:
 
 
 p = EU4_Idea_Parser()
-p.parse_file("/home/daniel/Documents/discord/raw_data/ideas/zz_group_ideas.txt")
+p.parse_file("/home/daniel/Documents/discord/raw_data/eu4/ideas/zz_group_ideas.txt")

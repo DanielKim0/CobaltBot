@@ -25,7 +25,6 @@ class EU4_Parser_Country(EU4_Parser):
     def process_file(self, data, filename):
         result = []
         data = transpose(data)
-        print(data)
         names = data[0]
         data = data[1]
         ind = self.get_date_index(names)

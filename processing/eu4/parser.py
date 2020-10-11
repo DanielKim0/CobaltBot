@@ -13,28 +13,29 @@ class EU4_Parser:
     def parse_folder(self, path):
         data = []
         for filename in os.listdir(path):
-            data.append(self.parse_file(os.path.join(path, filename)))
+            data.append(self.parse_file(os.path.join(path, filename), filename))
         return data
 
-    def parse_file(self, path):
+    def parse_file(self, path, filename):
         with codecs.open(path, "r", encoding="iso-8859-1") as f:
             lines = f.readlines()
             separated = self.separate(lines)
             data = self.parse_separate(separated)
-        return self.process_file(data)
+        return self.process_file(data, filename)
 
     @abstractmethod
     def parse_separate(self, line):
         pass
 
     @abstractmethod
-    def process_file(self, data):
+    def process_file(self, data, filename):
         pass
 
     def separate(self, lines):
         seps = []
         curr = ""
         key = None
+        edited = False
 
         left = 0
         right = 0
@@ -58,12 +59,13 @@ class EU4_Parser:
                 curr_key = split[0]
 
             if (curr_key == key) and (curr_key is not None) and ("1" not in curr_key):
-                if "{" in seps[-1]:
+                if edited:
                     curr = curr.rstrip() + "|" + split[1]
                 else:
                     seps[-1] = seps[-1].rstrip() + "|" + split[1]
             else:
                 curr += line
+                edited = True
             key = curr_key
 
             if left == right:
@@ -72,6 +74,7 @@ class EU4_Parser:
                 if curr:
                     seps.append(curr)
                 curr = ""
+                edited = False
         return seps
 
     def clean_line(self, line):

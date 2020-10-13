@@ -16,20 +16,100 @@ class EU4_Parser:
             data.append(self.parse_file(os.path.join(path, filename), filename))
         return data
 
-    def parse_file(self, path, filename):
+    def parse_file(self, path, filename, return_dict=True):
         with codecs.open(path, "r", encoding="iso-8859-1") as f:
             lines = f.readlines()
             separated = self.separate(lines)
-            data = self.parse_separate(separated)
-        return self.process_file(data, filename)
-
-    @abstractmethod
-    def parse_separate(self, line):
-        pass
+            if return_dict:
+                data = self.parse_separate_dict(separated)
+            else:
+                data = self.parse_separate_list(separated)
+            return self.process_file(data, filename)
 
     @abstractmethod
     def process_file(self, data, filename):
         pass
+
+    def parse_separate_dict(self, data):
+        bracket = False
+        result = []
+        for line in data:
+            if not bracket and "{" in line:
+                bracket = True
+            if bracket:
+                result.append(self.parse_bracket(line))
+            else:
+                result.append(self.parse_bracketless(line))
+        return transpose(result)
+
+    def parse_bracketless(self, line):
+        line = line.strip()
+        return line.split(": ")
+
+    def parse_bracket(self, string):
+        parts = self.sep_bracket(string)
+        for i in range(len(parts)):
+            if ":" in parts[i]:
+                parts[i] = "\n" + parts[i]
+        string = "".join(parts)[1:].replace("}", "\n}\n")
+        return self.convert_bracket(self.format_bracket(string))
+    
+    def sep_bracket(self, string):
+        parts = string.split()
+        new_parts = []
+        quote = False
+        for part in parts:
+            if quote:
+                new_parts[-1] += " " + part
+            else:
+                new_parts.append(part)
+
+            for i in range(part.count("\"")):
+                quote = not quote
+        return new_parts
+
+    def format_bracket(self, string):
+        lines = string.split("\n")
+
+        result = []
+        for line in lines:
+            if not line:
+                continue
+            if line.strip() == "}":
+                result.append("},\n")
+                continue
+            line = line.split(":")
+            line[0] = add_quotes(line[0])
+            if not(line[1] == "{" or line[1].isnumeric()):
+                line[1] = add_quotes(line[1])
+            if not (line[1]) == "{":
+                line[1] = line[1] + ","
+            result.append(": ".join(line) + "\n")
+        return "".join(result)
+
+    def convert_bracket(self, bracket):
+        ind = bracket.index(":")
+        name = bracket[1:ind-1] # fetch name of date and remove quotes
+        con = ast.literal_eval(bracket[ind+2:])[0]
+        return name, con
+
+    def parse_separate_list(self, data):
+        result = []
+        for part in data:
+            part = part.replace("{", "{\n")
+            part = part.replace("}", "\n}")
+            result.append(self.parse_separate_list_helper(part))
+        return result
+
+    def parse_separate_list_helper(self, part):
+        name = part[:part.index(":")]
+        idea = self.separate(part.splitlines(True)[1:-1])
+        idea = [i.rstrip() for i in idea]
+
+        for i in range(len(idea)):
+            if "{" in idea[i]:
+                idea[i] = self.parse_separate_list_helper(idea[i])
+        return [name, idea]
 
     def separate(self, lines):
         seps = []

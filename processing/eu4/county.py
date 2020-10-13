@@ -1,18 +1,24 @@
+import os
 import codecs
+import ast
+import re
+from utils import *
+from parser import EU4_Parser
+from datetime import datetime as dt
 
-class EU4CountyParser:
+class EU4_Parser_County(EU4_Parser):
     def __init__(self):
+        super().__init__()
+
+    def parse_separate(self, lines):
+        print(lines)
         pass
 
-    def parse_counties(self, path):
-        data = dict()
-        with codecs.open(path, "r", encoding="iso-8859-1") as f:
-            for line in f.readlines()[1:]:
-                line = line.split(";")
-                data[int(line[0])] = line[4]
-        return data
+    def process_file(self, data, filename):
+        pass
+
 
 if __name__ == "__main__":
-    p = EU4CountyParser()
-    res = p.parse_counties("/home/daniel/Documents/discord/raw_data/eu4/definition.csv")
+    p = EU4_Parser_County()
+    res = p.parse_file("/home/daniel/Documents/discord/raw_data/eu4/provinces/1-Uppland.txt", "1-Uppland.txt")
     print(res)

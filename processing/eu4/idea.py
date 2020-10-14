@@ -29,7 +29,7 @@ class EU4_Parser_Idea(EU4_Parser):
                             raise ValueError("Idea not found in idea dictionary.")
         return data
 
-p = EU4_Parser_Idea()
-#res = p.parse_file("/home/daniel/Documents/discord/raw_data/eu4/ideas/00_country_ideas.txt", "zz_group_ideas.txt", False)
-res = p.parse_file("/home/daniel/Documents/discord/raw_data/eu4/diplomacy/African_alliances.txt", "alliances.txt", False)
-print(res)
+if __name__ == "__main__":
+    p = EU4_Parser_Idea()
+    res = p.parse_file("../../raw_data/eu4/diplomacy/African_alliances.txt", "alliances.txt", False)
+    print(res)

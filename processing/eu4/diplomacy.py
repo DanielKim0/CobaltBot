@@ -56,6 +56,7 @@ class EU4_Parser_Country(EU4_Parser):
             self.parse_file(os.path.join(path, filename), filename, False)
         return self.relations
 
-p = EU4_Parser_Country()
-res = p.parse_folder("/home/daniel/Documents/discord/raw_data/eu4/diplomacy/")
-print(res)
+if __name__ == "__main__":
+    p = EU4_Parser_Country()
+    res = p.parse_folder("../../raw_data/eu4/diplomacy/")
+    print(res)

@@ -39,5 +39,5 @@ class EU4_Parser_County(EU4_Parser):
 
 if __name__ == "__main__":
     p = EU4_Parser_County()
-    res = p.parse_file("/home/daniel/Documents/discord/raw_data/eu4/provinces/1-Uppland.txt", "1-Uppland.txt")
+    res = p.parse_file("../../raw_data/eu4/provinces/1-Uppland.txt", "1-Uppland.txt")
     

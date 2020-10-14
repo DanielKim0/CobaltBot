@@ -6,7 +6,7 @@ from utils import *
 from parser import EU4_Parser
 from datetime import datetime as dt
 
-class EU4_Parser_Country(EU4_Parser):
+class EU4_Parser_Diplomacy(EU4_Parser):
     def __init__(self):
         super().__init__()
         self.relations = dict()
@@ -57,6 +57,6 @@ class EU4_Parser_Country(EU4_Parser):
         return self.relations
 
 if __name__ == "__main__":
-    p = EU4_Parser_Country()
+    p = EU4_Parser_Diplomacy()
     res = p.parse_folder("../../raw_data/eu4/diplomacy/")
     print(res)

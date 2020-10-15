@@ -19,153 +19,99 @@ class EU4_Parser:
     def parse_file(self, path, filename, return_dict=True):
         with codecs.open(path, "r", encoding="iso-8859-1") as f:
             lines = f.readlines()
-            separated = self.separate(lines)
+            cleaned = self.clean_data(lines)
             if return_dict:
-                data = self.parse_separate_dict(separated)
+                data = self.create_dict(cleaned)
             else:
-                data = self.parse_separate_list(separated)
+                data = self.create_list(cleaned)
             return self.process_file(data, filename)
 
     @abstractmethod
     def process_file(self, data, filename):
         pass
 
-    def parse_separate_dict(self, data):
-        bracket = False
-        result = []
-        for line in data:
-            if not bracket and "{" in line:
-                bracket = True
-            if bracket:
-                result.append(self.parse_bracket(line))
+    def merge(self, item, dupe):
+        item = item.rstrip()
+        if item[-1] == "\"":
+            item = item[:-1]
+        if dupe[0] == "\"":
+            dupe = dupe[1:]
+        return item + "|" + dupe
+
+    def compare_keys(self, curr, new):
+        for i in range(min(len(curr), len(new))):
+            if ":" in curr[i]:
+                return curr[i] == new[i] and "1" not in curr[i]
+        return False
+
+    def merge_lines(self, curr, new):
+        add = []
+        for i in range(len(new)):
+            if ":" in new[i] and new[i+1] != "{":
+                if new[i] in curr:
+                    ind = curr.index(new[i])+1
+                    curr[ind] = self.merge(curr[ind], new[i+1])
+                else:
+                    add.append(new[i])
+                    add.append(new[i+1])
+        if add:
+            if curr[-1] == "}":
+                curr = curr[:-1] + add + [curr[-1]]
             else:
-                result.append(self.parse_bracketless(line))
-        return transpose(result)
+                curr = curr + add
+        return curr
 
-    def parse_bracketless(self, line):
-        line = line.strip()
-        return line.split(": ")
-
-    def parse_bracket(self, string):
-        parts = self.sep_bracket(string)
-        for i in range(len(parts)):
-            if ":" in parts[i]:
-                parts[i] = "\n" + parts[i]
-        string = "".join(parts)[1:].replace("}", "\n}\n")
-        return self.convert_bracket(self.format_bracket(string))
-    
-    def sep_bracket(self, string):
-        parts = string.split()
-        new_parts = []
-        quote = False
-        for part in parts:
-            if quote:
-                new_parts[-1] += " " + part
+    def add_line(self, line):
+        for i in range(len(line)):
+            if line[i] in ["{", "}", ","]:
+                continue
+            elif line[i][-1] == ":":
+                line[i] = add_quotes(line[i][:-1]) + ":"
             else:
-                new_parts.append(part)
+                line[i] = add_quotes(line[i])
+        return line
 
-            for i in range(part.count("\"")):
-                quote = not quote
-        return new_parts
-
-    def format_bracket(self, string):
-        lines = string.split("\n")
-
-        result = []
-        for line in lines:
-            if not line:
-                continue
-            if line.strip() == "}":
-                result.append("},\n")
-                continue
-            line = line.split(":")
-            line[0] = add_quotes(line[0])
-            if not(line[1] == "{" or line[1].isnumeric()):
-                line[1] = add_quotes(line[1])
-            if not (line[1]) == "{":
-                line[1] = line[1] + ","
-            result.append(": ".join(line) + "\n")
-        return "".join(result)
-
-    def convert_bracket(self, bracket):
-        ind = bracket.index(":")
-        name = bracket[1:ind-1] # fetch name of date and remove quotes
-        con = ast.literal_eval(bracket[ind+2:])[0]
-        return name, con
-
-    def parse_separate_list(self, data):
-        result = []
-        for part in data:
-            part = part.replace("{", "{\n")
-            part = part.replace("}", "\n}")
-            result.append(self.parse_separate_list_helper(part))
-        return result
-
-    def parse_separate_list_helper(self, part):
-        name = part[:part.index(":")]
-        idea = self.separate(part.splitlines(True)[1:-1])
-        idea = [i.rstrip() for i in idea]
-
-        for i in range(len(idea)):
-            if "{" in idea[i]:
-                idea[i] = self.parse_separate_list_helper(idea[i])
-        return [name, idea]
-
-    def separate(self, lines):
-        seps = []
-        curr = ""
-        key = None
-        edited = False
-
-        left = 0
-        right = 0
-
+    def clean_data(self, lines):
+        data = []
+        curr = None
         for line in lines:
             line = self.clean_line(line)
+
+            temp = []
+            quotes = 0
+            for item in line.split():
+                if quotes % 2 == 0:
+                    temp.append(item)
+                else:
+                    temp[-1] += item
+                quotes += item.count("\"")
+            line = temp
+
             if not line:
                 continue
-            l = line.count("{")
-            r = line.count("}")
-
-            left += l
-            right += r
-
-            # below if statements used for combining same non-date entries together
-            # some entries are left dangling if the loop had just submitted an entry
-            split = line.split(": ")
-            if len(split) < 2:
-                curr_key = None
-            else:
-                curr_key = split[0]
-
-            if (curr_key == key) and (curr_key is not None) and ("1" not in curr_key):
-                if edited:
-                    curr = curr.rstrip() + "|" + split[1]
+            if curr:
+                if self.compare_keys(curr, line):
+                    curr = self.merge_lines(curr, line)
                 else:
-                    seps[-1] = seps[-1].rstrip() + "|" + split[1]
+                    data.append(self.add_line(curr))
+                    curr = line
             else:
-                curr += line
-                edited = True
-            key = curr_key
-
-            if left == right:
-                left = 0
-                right = 0
-                if curr:
-                    seps.append(curr)
-                curr = ""
-                edited = False
-        return seps
+                curr = line
+        data.append(self.add_line(curr))
+        return data
 
     def clean_line(self, line):
-        while '  ' in line:
-            line = line.replace('  ', ' ')
         if "#" in line:
-            line = line.split("#")
-            if len(line) < 2:
+            temp = line.split("#")
+            if len(temp) < 2:
                 return ""
             else:
-                line = line[0] + "\n"
+                temp = temp[0] + "\n"
+
+            # make sure the "#" isn't in quotes
+            if temp.count("\"") % 2 == 0:
+                line = temp
+
         line = line.replace("}", " }").replace("{", "{ ")
         while "=" in line:
             line = self.replace_equals(line)
@@ -184,3 +130,71 @@ class EU4_Parser:
         while line[right].isspace() and right < len(line):
             right += 1
         return line[:left+1] + ": " + line[right:]
+
+    def create_dict(self, data):
+        for i in range(len(data)):
+            for j in range(len(data[i])):
+                if ":" in data[i][j] and data[i][j+1] != "{":
+                    data[i][j+1] += ",\n"
+                elif data[i][j] == "}":
+                    data[i][j] = "},\n"
+                elif data[i][j] == "{":
+                    data[i][j] = "{\n"
+        data = "".join(["".join(i) for i in data])
+        data = self.separate(data)
+        result = []
+
+        for item in data:
+            ind = item.index(":")
+            name = item[1:ind-1] # fetch name of date and remove quotes
+            if "{" in item:
+                con = ast.literal_eval(item[ind+1:])[0]
+            else:
+                con = item[ind+2:-3]
+            result.append([name, con])
+        return result
+
+    def separate(self, lines):
+        seps = []
+        curr = ""
+        left = 0
+        right = 0
+
+        for line in lines.split("\n"):
+            if not line:
+                continue
+            l = line.count("{")
+            r = line.count("}")
+            left += l
+            right += r
+            curr += line + "\n"
+
+            if left == right:
+                left = 0
+                right = 0
+                if curr:
+                    seps.append(curr)
+                curr = ""
+        return seps
+
+    def create_list(self, data):
+        temp = []
+        for item in data:
+            if len(item) > 2:
+                i = 0
+                while i < len(item):
+                    temp.append(item[i:min(i+2, len(item))])
+                    i += 2
+            else:
+                temp.append(item)
+        data = temp
+
+        temp = []
+        for item in data:
+            if item[-1] == "{":
+                temp.append("[" + item[0][:-1] + ",")
+            elif item[-1] == "}":
+                temp.append("],")
+            else:
+                temp.append("[" + " ".join(item).replace(":", ",") + "],")
+        return ast.literal_eval("".join(temp))

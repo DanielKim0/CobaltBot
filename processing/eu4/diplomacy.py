@@ -12,6 +12,7 @@ class EU4_Parser_Diplomacy(EU4_Parser):
         self.relations = dict()
 
     def add_tag(self, tag):
+        # tag is the blank of everything in the list
         self.relations[tag] = {
             "overlord": [],
             "hegemon": [], # for tributary
@@ -19,18 +20,21 @@ class EU4_Parser_Diplomacy(EU4_Parser):
             "vassal": [],
             "guaranteeing": [],
             "guarantor": [],
-            "alliance": []
+            "alliance": [],
+            "senior": [],
+            "junior": [],
+            "marriage": []
         }
 
     def process_file(self, data, filename):
         for relation in data:
-            if len(relation[1]) >= 4:
-                start = convert_to_date(relation[1][-2].split(": ")[1])
-                end = convert_to_date(relation[1][-1].split(": ")[1])
+            if "start_date" in relation[1]:
+                start = convert_to_date(relation[1]["start_date"])
+                end = convert_to_date(relation[1]["end_date"])
 
                 if start <= START_DATE and end >= START_DATE:
-                    first = relation[1][-4].split(": ")[1]
-                    second = relation[1][-3].split(": ")[1]
+                    first = relation[1]["first"]
+                    second = relation[1]["second"]
                     if first not in self.relations:
                         self.add_tag(first)
                     if second not in self.relations:
@@ -48,12 +52,16 @@ class EU4_Parser_Diplomacy(EU4_Parser):
                     elif relation[0] == "guarantee":
                         self.relations[first]["guaranteeing"].append(second)
                         self.relations[second]["guarantor"].append(first)
-                    else:
-                        print(relation[0])
+                    elif relation[0] == "union":
+                        self.relations[first]["junior"].append(second)
+                        self.relations[second]["senior"].append(first)
+                    elif relation[0] == "royal_marriage":
+                        self.relations[first]["marriage"].append(second)
+                        self.relations[second]["marriage"].append(first)
 
     def parse_folder(self, path):
         for filename in os.listdir(path):
-            self.parse_file(os.path.join(path, filename), filename, False)
+            self.parse_file(os.path.join(path, filename), filename)
         return self.relations
 
 if __name__ == "__main__":

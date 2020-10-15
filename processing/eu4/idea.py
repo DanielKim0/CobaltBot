@@ -31,5 +31,8 @@ class EU4_Parser_Idea(EU4_Parser):
 
 if __name__ == "__main__":
     p = EU4_Parser_Idea()
-    res = p.parse_file("../../raw_data/eu4/diplomacy/African_alliances.txt", "alliances.txt", False)
-    print(res)
+    # res = p.parse_file("../../raw_data/eu4/ideas/00_country_ideas.txt", "sample.txt", False)
+    # res = p.parse_file("../../raw_data/eu4/ideas/zz_group_ideas.txt", "sample.txt", False)
+    # res = p.parse_file("../../raw_data/sample.txt", "sample.txt", False)
+    for item in res:
+        print(item)

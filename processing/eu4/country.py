@@ -10,8 +10,16 @@ class EU4_Parser_Country(EU4_Parser):
     def __init__(self):
         super().__init__()
 
+    def parse_folder(self, path):
+        data = dict()
+        for filename in os.listdir(path):
+            country = self.parse_file(os.path.join(path, filename), filename)
+            data[country["tag"]] = country
+        return data
+
     def process_file(self, data, filename):
         result = []
+        data = transpose(data)
         names = data[0]
         data = data[1]
         ind = self.get_date_index(names)
@@ -21,7 +29,12 @@ class EU4_Parser_Country(EU4_Parser):
             rulers = self.get_current_rulers(names[ind:], data[ind:])
         else:
             rulers = []
-        return [info, rulers]
+        
+        if rulers:
+            info["monarch"] = rulers[0]
+            info["heir"] = rulers[1]
+            info["consort"] = rulers[2]
+        return info
 
     def get_date_index(self, names):
         for i in range(len(names)):
@@ -31,16 +44,17 @@ class EU4_Parser_Country(EU4_Parser):
 
     def get_country_info(self, names, data, filename):
         data = {names[i]: data[i] for i in range(len(data))}
-        tag, country = os.path.splitext(filename)[0].split(" - ")
-        data["tag"] = tag
-        data["country"] = country
+        tag = os.path.splitext(filename)[0].split("-")[0]
+        country = "-".join(os.path.splitext(filename)[0].split("-")[1:])
+
+        data["tag"] = tag.strip()
+        data["country"] = country.strip()
         return data
         
     def get_current_rulers(self, names, data):
         monarch = None
         heir = None
         consort = None
-        generals = []
 
         for i in range(len(names)):
             date = convert_to_date(names[i])
@@ -55,19 +69,12 @@ class EU4_Parser_Country(EU4_Parser):
                 heir = data[i]["heir"]
             if "consort" in data[i] and not check_death_date(data[i]["consort"]):
                 consort = data[i]["consort"]
-            if "leader" in data[i] and not check_death_date(data[i]["leader"]):
-                generals.append(data[i]["leader"])
-            
-            rulers = [monarch, heir, consort]
-            for i in range(len(rulers)):
-                if rulers[i] and "leader" in rulers[i]:
-                    generals.append(rulers[i]["leader"])
-                    rulers[i].pop("leader")
-        return monarch, heir, consort, generals
+
+        return monarch, heir, consort
 
 if __name__ == "__main__":
     p = EU4_Parser_Country()
     # result = p.parse_file("../../raw_data/eu4/countries/ALB - Albania.txt", "ALB - Albania.txt")
-    # result = p.parse_file("../../raw_data/eu4/countries/FRA - France.txt", "FRA - France.txt")
-    result = p.parse_file("../../raw_data/eu4/countries/KOR - Korea.txt", "KOR - Korea.txt")
+    result = p.parse_file("../../raw_data/eu4/countries/FRA - France.txt", "FRA - France.txt")
+    # result = p.parse_file("../../raw_data/eu4/countries/MUG - Mughal.txt", "MUG - Mughal.txt")
     print(result)

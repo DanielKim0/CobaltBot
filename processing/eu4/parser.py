@@ -212,3 +212,18 @@ class EU4_Parser:
             if names[i][0] == "1": # all dates begin with a year in the 2nd millenia
                 return i
         return -1
+
+    def split_file_name(self, filename):
+        if "-" in filename:
+            a = os.path.splitext(filename)[0].split("-")[0]
+            b = "-".join(os.path.splitext(filename)[0].split("-")[1:])
+        else:
+            a = os.path.splitext(filename)[0].split()[0]
+            b = "-".join(os.path.splitext(filename)[0].split()[1:])
+        return a.strip(), b.strip()
+        
+    def check_death_date(self, item):
+        if "death_date" in item:
+            return(convert_to_date(item["death_date"]) < START_DATE)
+        else:
+            return False

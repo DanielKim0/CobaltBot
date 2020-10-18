@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+from utils import *
 from country import EU4_Parser_Country
 from province import EU4_Parser_Province
 from diplomacy import EU4_Parser_Diplomacy
@@ -11,7 +12,7 @@ from map import EU4_Parser_Map
 from copy import copy
 
 class EU4_Main:
-    def __init__(self):
+    def __init__(self, results = "results"):
         country = EU4_Parser_Country()
         province = EU4_Parser_Province()
         diplomacy = EU4_Parser_Diplomacy()
@@ -23,7 +24,7 @@ class EU4_Main:
         self.country_data = country.parse_folder("../../raw_data/eu4/countries")
         self.tag_list = set(self.country_data.keys())
         self.tags_without_ideas = set(self.country_data.keys())
-        self.province_data = province.parse_folder("../../raw_data/eu4/provinces")
+        self.province_data, self.hre, self.name = province.parse_folder("../../raw_data/eu4/provinces")
         self.diplo_data = diplomacy.parse_folder("../../raw_data/eu4/diplomacy")
         self.culture, self.subculture, self.primary = culture.parse_folder("../../raw_data/eu4/cultures")
         self.religion, self.denoms = religion.parse_folder("../../raw_data/eu4/religions/")
@@ -34,6 +35,7 @@ class EU4_Main:
         self.areas = maps.parse_file("../../raw_data/eu4/map/area.txt")
         self.regions = maps.parse_file("../../raw_data/eu4/map/region.txt")
         self.continents = maps.parse_file("../../raw_data/eu4/map/continent.txt")
+        self.results = results
 
     def process_data(self):
         colonial_continents = ["north_america", "south_america", "australia"]
@@ -60,6 +62,9 @@ class EU4_Main:
                             self.country_data[tag]["region"] = key
                             break
                 
+                self.country_data[tag]["hre"] = self.hre[int(self.country_data[tag]["capital"])]
+                self.country_data[tag]["capital_name"] = self.name[int(self.country_data[tag]["capital"])]
+                
             if "primary_culture" in self.country_data[tag]:
                 primary = self.country_data[tag]["primary_culture"]
                 self.country_data[tag]["culture_group"] = self.subculture[primary]
@@ -77,9 +82,26 @@ class EU4_Main:
             if tag in self.diplo_data:
                 self.country_data[tag].update(self.diplo_data[tag])
 
+    def clean_data(self):
+        self.country_data.pop("REB")
+        self.country_data.pop("NAT")
+        self.country_data.pop("PIR")
+
+        for tag in self.country_data:
+            to_pop = []
+            for key in self.country_data[tag]:
+                if not self.country_data[tag][key]:
+                    to_pop.append(key)
+                if "base_tax" in self.country_data[tag]:
+                    self.country_data[tag]["dev_total"] = self.country_data[tag]["dev_tax"] + \
+                        self.country_data[tag]["dev_production"] + self.country_data[tag]["dev_manpower"]
+            for key in to_pop:
+                self.country_data[tag].pop(key)
+
     def write_data(self):
-        print(self.country_data["SWE"])
-        pass
+        create_folder(self.results)
+        # for tag in self.country_data:
+        #     if 
 
     def add_idea(self, idea, tag):
         idea_num = 0
@@ -162,6 +184,7 @@ class EU4_Main:
     def main(self):
         self.process_data()
         self.assign_ideas()
+        self.clean_data()
         self.write_data()
 
 if __name__ == "__main__":

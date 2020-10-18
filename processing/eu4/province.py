@@ -10,6 +10,8 @@ class EU4_Parser_Province(EU4_Parser):
     def __init__(self):
         super().__init__()
         self.country_dict = dict()
+        self.hre_dict = dict()
+        self.name_dict = dict()
 
     def add_tag(self, tag):
         self.country_dict[tag] = {
@@ -17,15 +19,17 @@ class EU4_Parser_Province(EU4_Parser):
             "dev_tax": 0,
             "dev_production": 0,
             "dev_manpower": 0,
-            "hre": False, # capital is in the HRE
         }
 
     def process_file(self, data, filename):
         if data:
             data = self.update_province_info(data)
-            self.get_province_info(data)
+            self.get_province_info(data, filename)
     
-    def get_province_info(self, data):
+    def get_province_info(self, data, filename):
+        number, name = self.split_file_name(filename)
+        number = int(number)
+
         if "owner" in data:
             tag = data["owner"]
             if data["owner"] not in self.country_dict:
@@ -34,8 +38,12 @@ class EU4_Parser_Province(EU4_Parser):
             self.country_dict[tag]["dev_tax"] += int(data["base_tax"])
             self.country_dict[tag]["dev_production"] += int(data["base_production"])
             self.country_dict[tag]["dev_manpower"] += int(data["base_manpower"])
-            if "capital" in data and len(data["add_core"].split("|")) == 1 and data["hre"] == "yes":
-                self.country_dict[tag]["hre"] = True
+        
+        if "hre" in data and data["hre"] == "yes":
+            self.hre_dict[number] = True
+        else:
+            self.hre_dict[number] = False
+        self.name_dict[number] = name
 
     def update_province_info(self, data):
         prov = {data[i][0]: data[i][1] for i in range(len(data))}
@@ -65,7 +73,7 @@ class EU4_Parser_Province(EU4_Parser):
     def parse_folder(self, path):
         for filename in os.listdir(path):
             self.parse_file(os.path.join(path, filename), filename)
-        return self.country_dict
+        return self.country_dict, self.hre_dict, self.name_dict
 
 if __name__ == "__main__":
     p = EU4_Parser_Province()

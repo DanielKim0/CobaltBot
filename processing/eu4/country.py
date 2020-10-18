@@ -53,11 +53,9 @@ class EU4_Parser_Country(EU4_Parser):
 
     def get_country_info(self, names, data, filename):
         data = {names[i]: data[i] for i in range(len(data))}
-        tag = os.path.splitext(filename)[0].split("-")[0]
-        country = "-".join(os.path.splitext(filename)[0].split("-")[1:])
-
-        data["tag"] = tag.strip()
-        data["country"] = country.strip()
+        tag, country = self.split_file_name(filename)
+        data["tag"] = tag
+        data["country"] = country
         return data
         
     def get_current_rulers(self, names, data):
@@ -70,16 +68,16 @@ class EU4_Parser_Country(EU4_Parser):
             if date > START_DATE:
                 break
             
-            if "monarch" in data[i] and not check_death_date(data[i]["monarch"]):
+            if "monarch" in data[i] and not self.check_death_date(data[i]["monarch"]):
                 monarch = data[i]["monarch"]
                 
                 if "add_ruler_personality" in data[i]:
                     monarch["add_ruler_personality"] = data[i]["add_ruler_personality"]
                 heir = None
                 consort = None
-            if "heir" in data[i] and not check_death_date(data[i]["heir"]):
+            if "heir" in data[i] and not self.check_death_date(data[i]["heir"]):
                 heir = data[i]["heir"]
-            if "consort" in data[i] and not check_death_date(data[i]["consort"]):
+            if "consort" in data[i] and not self.check_death_date(data[i]["consort"]):
                 consort = data[i]["consort"]
 
         return monarch, heir, consort

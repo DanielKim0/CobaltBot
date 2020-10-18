@@ -77,6 +77,5 @@ class EU4_Parser_Province(EU4_Parser):
 
 if __name__ == "__main__":
     p = EU4_Parser_Province()
-    res = p.parse_folder("../../raw_data/eu4/provinces")
-    # res = p.parse_file("../../raw_data/eu4/provinces/1213 - Shoa.txt", "4510 - Shorkot.txt")
+    p.parse_folder("../../raw_data/eu4/provinces")
     print(p.country_dict)

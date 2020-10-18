@@ -14,7 +14,7 @@ def convert_to_date(string):
     return dt.strptime(string, "%Y.%m.%d")
 
 def create_folder(path):
-    if os.path.exists(path):
+    if not os.path.exists(path):
         os.makedirs(path)
 
 START_DATE = convert_to_date("1444.11.11")

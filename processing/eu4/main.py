@@ -100,8 +100,10 @@ class EU4_Main:
 
     def write_data(self):
         create_folder(self.results)
-        # for tag in self.country_data:
-        #     if 
+        for tag in self.country_data:
+            path = os.path.join(self.results, tag + ".txt")
+            with open(path, "w") as f:
+                json.dump(self.country_data[tag], f)
 
     def add_idea(self, idea, tag):
         idea_num = 0
@@ -190,4 +192,3 @@ class EU4_Main:
 if __name__ == "__main__":
     p = EU4_Main()
     p.main()
-

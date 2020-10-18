@@ -7,7 +7,6 @@ from utils import *
 
 class EU4_Parser:
     def __init__(self):
-        # TODO
         pass
 
     def parse_folder(self, path):

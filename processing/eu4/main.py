@@ -100,14 +100,21 @@ class EU4_Main:
 
     def write_data(self):
         create_folder(self.results)
+        create_folder(os.path.join(self.results, "tags"))
+        create_folder(os.path.join(self.results, "idea_groups"))
+
         for tag in self.country_data:
-            path = os.path.join(self.results, tag + ".txt")
+            path = os.path.join(self.results, "tags", tag + ".txt")
             with open(path, "w") as f:
                 json.dump(self.country_data[tag], f)
 
+        for idea in self.basic_ideas:
+            path = os.path.join(self.results, "idea_groups", idea + ".txt")
+            with open(path, "w") as f:
+                json.dump(self.basic_ideas[idea], f)
+
     def add_idea(self, idea, tag):
         idea_num = 0
-        self.country_data[tag]["idea"] = True
         for item in idea[1:]:
             if item[0] in ["trigger"]:
                 continue
@@ -119,6 +126,9 @@ class EU4_Main:
                 idea_num += 1
                 self.country_data[tag]["idea_" + str(idea_num)] = item[1:]
                 self.country_data[tag]["idea_" + str(idea_num) + "_name"] = item[0]
+
+    def parse_basic_ideas(self):
+        self.basic_ideas = {self.basic_ideas[i][0]: self.basic_ideas[i] for i in range(len(self.basic_ideas))}
 
     def parse_condition_tag(self, condition, idea):
         if condition[0] in ["tag", "TAG"]:
@@ -186,9 +196,10 @@ class EU4_Main:
     def main(self):
         self.process_data()
         self.assign_ideas()
+        self.parse_basic_ideas()
         self.clean_data()
         self.write_data()
-
+        
 if __name__ == "__main__":
     p = EU4_Main()
     p.main()

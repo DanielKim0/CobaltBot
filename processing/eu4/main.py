@@ -2,7 +2,7 @@ import os
 import sys
 import json
 from country import EU4_Parser_Country
-from county import EU4_Parser_County
+from province import EU4_Parser_Province
 from diplomacy import EU4_Parser_Diplomacy
 from idea import EU4_Parser_Idea
 from culture import EU4_Parser_Culture
@@ -13,8 +13,8 @@ from copy import copy
 class EU4_Main:
     def __init__(self):
         country = EU4_Parser_Country()
-        # county = EU4_Parser_County()
-        # diplomacy = EU4_Parser_Diplomacy()
+        province = EU4_Parser_Province()
+        diplomacy = EU4_Parser_Diplomacy()
         culture = EU4_Parser_Culture()
         ideas = EU4_Parser_Idea()
         religion = EU4_Parser_Religion()
@@ -23,20 +23,19 @@ class EU4_Main:
         self.country_data = country.parse_folder("../../raw_data/eu4/countries")
         self.tag_list = set(self.country_data.keys())
         self.tags_without_ideas = set(self.country_data.keys())
-        # self.county_data = county.parse_folder("../../raw_data/eu4/")
-        # self.diplo_data = diplomacy.parse_folder("../../raw_data/eu4/")
+        self.province_data = province.parse_folder("../../raw_data/eu4/provinces")
+        self.diplo_data = diplomacy.parse_folder("../../raw_data/eu4/diplomacy")
         self.culture, self.subculture, self.primary = culture.parse_folder("../../raw_data/eu4/cultures")
         self.religion, self.denoms = religion.parse_folder("../../raw_data/eu4/religions/")
         self.country_ideas = ideas.parse_file("../../raw_data/eu4/ideas/00_country_ideas.txt", "00_country_ideas.txt", False)
         self.group_ideas = ideas.parse_file("../../raw_data/eu4/ideas/zz_group_ideas.txt", "zz_group_ideas.txt", False)
         self.generic_ideas = ideas.parse_file("../../raw_data/eu4/ideas/zzz_default_idea.txt", "zzz_default_idea.txt", False)[0]
-        # self.group_ideas = ideas.parse_file("../../raw_data/sample.txt", "zz_group_ideas.txt", False)
         self.basic_ideas = ideas.parse_file("../../raw_data/eu4/ideas/00_basic_ideas.txt", "00_basic_ideas.txt", False)
         self.areas = maps.parse_file("../../raw_data/eu4/map/area.txt")
         self.regions = maps.parse_file("../../raw_data/eu4/map/region.txt")
         self.continents = maps.parse_file("../../raw_data/eu4/map/continent.txt")
 
-    def preprocess_data(self):
+    def process_data(self):
         colonial_continents = ["north_america", "south_america", "australia"]
 
         for tag in self.tag_list:
@@ -69,9 +68,33 @@ class EU4_Main:
             if "add_government_reform" in self.country_data[tag]:
                 self.country_data[tag]["has_reform"] = self.country_data[tag]["add_government_reform"]
 
+            if tag in self.province_data:
+                self.country_data[tag].update(self.province_data[tag])
+                self.country_data[tag]["present"] = True
+            else:
+                self.country_data[tag]["present"] = False
+
+            if tag in self.diplo_data:
+                self.country_data[tag].update(self.diplo_data[tag])
+
+    def write_data(self):
+        print(self.country_data["SWE"])
+        pass
 
     def add_idea(self, idea, tag):
-        self.country_data[tag]["idea"] = idea
+        idea_num = 0
+        self.country_data[tag]["idea"] = True
+        for item in idea[1:]:
+            if item[0] in ["trigger"]:
+                continue
+            elif item[0] in ["start"]:
+                self.country_data[tag]["tradition"] = item[1:]
+            elif item[0] in ["bonus"]:
+                self.country_data[tag]["ambition"] = item[1:]
+            else:
+                idea_num += 1
+                self.country_data[tag]["idea_" + str(idea_num)] = item[1:]
+                self.country_data[tag]["idea_" + str(idea_num) + "_name"] = item[0]
 
     def parse_condition_tag(self, condition, idea):
         if condition[0] in ["tag", "TAG"]:
@@ -137,8 +160,9 @@ class EU4_Main:
             self.add_idea(self.generic_ideas, tag)
 
     def main(self):
-        self.preprocess_data()
+        self.process_data()
         self.assign_ideas()
+        self.write_data()
 
 if __name__ == "__main__":
     p = EU4_Main()

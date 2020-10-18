@@ -100,7 +100,8 @@ class EU4_Parser:
                     curr = line
             else:
                 curr = line
-        data.append(self.add_line(curr))
+        if curr:
+            data.append(self.add_line(curr))
         return data
 
     def clean_line(self, line):
@@ -115,7 +116,7 @@ class EU4_Parser:
             if temp.count("\"") % 2 == 0:
                 line = temp
 
-        line = line.replace("}", " }").replace("{", "{ ")
+        line = line.replace("}", " } ").replace("{", " { ")
         while "=" in line:
             line = self.replace_equals(line)
         line = line.lstrip()
@@ -127,16 +128,20 @@ class EU4_Parser:
             return line
         
         left = ind - 1
-        while line[left].isspace() and left >= 0:
+        while left >= 0 and line[left].isspace():
             left -= 1
         right = ind + 1
-        while line[right].isspace() and right < len(line):
+        while right < len(line) and line[right].isspace():
             right += 1
         return line[:left+1] + ": " + line[right:]
 
     def create_dict(self, data):
         for i in range(len(data)):
             for j in range(len(data[i])):
+                if i+1 < len(data) and ":" in data[i][j] and "}" not in data[i] and "{" not in data[i] and data[i+1][0] == "{":
+                    data[i] = data[i] + [data[i+1][0]]
+                    data[i+1] = data[i+1][1:]
+
                 if ":" in data[i][j] and data[i][j+1] != "{":
                     data[i][j+1] += ",\n"
                 elif data[i][j] == "}":
@@ -201,3 +206,9 @@ class EU4_Parser:
             else:
                 temp.append("[" + " ".join(item).replace(":", ",") + "],")
         return ast.literal_eval("".join(temp))
+
+    def get_date_index(self, names):
+        for i in range(len(names)):
+            if names[i][0] == "1": # all dates begin with a year in the 2nd millenia
+                return i
+        return -1

@@ -51,12 +51,6 @@ class EU4_Parser_Country(EU4_Parser):
 
         return info
 
-    def get_date_index(self, names):
-        for i in range(len(names)):
-            if names[i][0] == "1": # all dates begin with a year in the 2nd millenia
-                return i
-        return -1
-
     def get_country_info(self, names, data, filename):
         data = {names[i]: data[i] for i in range(len(data))}
         tag = os.path.splitext(filename)[0].split("-")[0]

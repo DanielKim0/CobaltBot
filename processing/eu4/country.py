@@ -24,16 +24,31 @@ class EU4_Parser_Country(EU4_Parser):
         data = data[1]
         ind = self.get_date_index(names)
         
-        info = self.get_country_info(names[:ind], data[:ind], filename)
         if ind != -1:
+            info = self.get_country_info(names[:ind], data[:ind], filename)
             rulers = self.get_current_rulers(names[ind:], data[ind:])
+            info = self.apply_country_changes(names[ind:], data[ind:], info)
         else:
+            info = self.get_country_info(names, data, filename)
             rulers = []
         
         if rulers:
             info["monarch"] = rulers[0]
             info["heir"] = rulers[1]
             info["consort"] = rulers[2]
+        return info
+
+    def apply_country_changes(self, names, data, info):
+        for i in range(len(names)):
+            date = convert_to_date(names[i])
+            if date > START_DATE:
+                break
+
+            for key in data[i]:
+                if key in ["clear_scripted_personalities", "add_ruler_personality", "monarch", "heir", "consort"]:
+                    continue
+                info[key] = data[i][key]
+
         return info
 
     def get_date_index(self, names):
@@ -63,6 +78,9 @@ class EU4_Parser_Country(EU4_Parser):
             
             if "monarch" in data[i] and not check_death_date(data[i]["monarch"]):
                 monarch = data[i]["monarch"]
+                
+                if "add_ruler_personality" in data[i]:
+                    monarch["add_ruler_personality"] = data[i]["add_ruler_personality"]
                 heir = None
                 consort = None
             if "heir" in data[i] and not check_death_date(data[i]["heir"]):
@@ -74,7 +92,6 @@ class EU4_Parser_Country(EU4_Parser):
 
 if __name__ == "__main__":
     p = EU4_Parser_Country()
-    # result = p.parse_file("../../raw_data/eu4/countries/ALB - Albania.txt", "ALB - Albania.txt")
-    result = p.parse_file("../../raw_data/eu4/countries/FRA - France.txt", "FRA - France.txt")
+    result = p.parse_file("../../raw_data/eu4/countries/SRH - Sirhind.txt", "SRH - Sirhind.txt")
     # result = p.parse_file("../../raw_data/eu4/countries/MUG - Mughal.txt", "MUG - Mughal.txt")
     print(result)

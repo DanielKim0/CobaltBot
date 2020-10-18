@@ -45,20 +45,23 @@ class EU4_Parser:
         return False
 
     def merge_lines(self, curr, new):
-        add = []
-        for i in range(len(new)):
-            if ":" in new[i] and new[i+1] != "{":
-                if new[i] in curr:
-                    ind = curr.index(new[i])+1
-                    curr[ind] = self.merge(curr[ind], new[i+1])
+        if len(new) > 2 or new[0] != "NOT:":
+            add = []
+            for i in range(len(new)):
+                if ":" in new[i] and new[i+1] != "{":
+                    if new[i] in curr:
+                        ind = curr.index(new[i])+1
+                        curr[ind] = self.merge(curr[ind], new[i+1])
+                    else:
+                        add.append(new[i])
+                        add.append(new[i+1])
+            if add:
+                if curr[-1] == "}":
+                    curr = curr[:-1] + add + [curr[-1]]
                 else:
-                    add.append(new[i])
-                    add.append(new[i+1])
-        if add:
-            if curr[-1] == "}":
-                curr = curr[:-1] + add + [curr[-1]]
-            else:
-                curr = curr + add
+                    curr = curr + add
+        else:
+            curr = curr[:-1]
         return curr
 
     def add_line(self, line):

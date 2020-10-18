@@ -14,8 +14,9 @@ class EU4_Parser_Culture:
             curr = None
 
             for line in lines:
-                line = line.rstrip()
-                if not line or "#" in line or "}" in line:
+                line = line.split("#")[0].rstrip()
+
+                if not line or "}" in line:
                     continue
             
                 if "=" in line:

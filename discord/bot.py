@@ -4,6 +4,17 @@ import discord
 from dotenv import load_dotenv
 from discord.ext import commands
 
+class CobaltCog(commands.Cog):
+    def __init__(self, bot, name):
+        self.bot = bot
+        self.name = name
+
+    async def valid_cog_check(self, ctx, msg="Error: This server is not configured to use this command."):
+        # Function that checks if the cog is usable in this server
+        valid = self.name in self.bot.cog_dict[ctx.message.guild.id]
+        if not valid:
+            await ctx.send(msg)
+        return valid
 
 class CobaltBot(commands.Bot):
     def __init__(self, prefix="!"):
@@ -12,6 +23,7 @@ class CobaltBot(commands.Bot):
         self.token = os.getenv('DISCORD_TOKEN')
         self.serv = os.getenv('DISCORD_SERVER')
         self.default_prefix = prefix
+        # Prefixes should be different for different servers.
         self.prefixes = dict()
         # Certain cogs should be admitted for different servers.
         self.cog_dict = dict()
@@ -47,9 +59,10 @@ class CobaltBot(commands.Bot):
             else:
                 raise
 
+    # TODO below
     @commands.command(name="help")
     async def help(self, pass_context=True):
-        # TODO
+        # Help message sent as response to message in server
         pass
 
     @commands.command(name="get_prefix", aliases=["prefix", "pre"])

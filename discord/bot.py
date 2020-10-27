@@ -5,9 +5,9 @@ from dotenv import load_dotenv
 from discord.ext import commands
 
 class CobaltCog(commands.Cog):
-    def __init__(self, bot, name):
+    def __init__(self, bot, cog_name):
         self.bot = bot
-        self.name = name
+        self.cog_name = cog_name
 
     async def valid_cog_check(self, ctx, msg="Error: This server is not configured to use this command."):
         # Function that checks if the cog is usable in this server

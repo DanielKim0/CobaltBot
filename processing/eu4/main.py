@@ -43,9 +43,14 @@ class EU4_Main:
             for tag in self.country_data:
                 data[tag] = tag
                 data[self.country_data[tag]["country"]] = tag
-            # Add nicknames or common names for countries here
+            for idea in self.basic_ideas:
+                idea = idea.split("_")[0]
+                data[idea] = idea
+
+        # Add nicknames or common names here
             data["Rome"] = "ROM"
             data["Mongols"] = "MON"
+            data["espionage"] = "spy"
             json.dump(data, f, ensure_ascii=False, indent=4)
 
     def process_data(self):

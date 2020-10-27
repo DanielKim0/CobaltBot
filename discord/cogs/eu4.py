@@ -20,8 +20,7 @@ class EU4Cog(CobaltCog):
             return string
         else:
             matches = difflib.get_close_matches(string)
-            message = ""
-            message += "Sorry, I couldn't find any matches for this country/tag.\nDid you mean "
+            message = "Sorry, I couldn't find any matches for this country/tag.\nDid you mean "
             for item in matches[:-1]:
                 message += item + " or "
             message += matches[-1] + "?"

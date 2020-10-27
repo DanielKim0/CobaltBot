@@ -15,6 +15,17 @@ class CobaltCog(commands.Cog):
         if not valid:
             await ctx.send(msg)
         return valid
+    
+    async def make_embed(self, fields, messages, image_path=None):
+        embed = discord.Embed()
+        for i in range(len(fields)):
+            embed.add_field(name=fields[i], value=messages[i], inline=True)
+            
+        if image_path is not None:
+            img_name = os.path.basename(image_path)
+            attachment = discord.Attachment(image_path, img_name)
+            embed.set_image(url="attachment://" + img_name)
+        return embed
 
 class CobaltBot(commands.Bot):
     def __init__(self, prefix="!"):

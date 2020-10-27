@@ -37,6 +37,17 @@ class EU4_Main:
         self.continents = maps.parse_file("../../raw_data/eu4/map/continent.txt")
         self.results = results
 
+    def write_names(self, output):
+        with open(os.path.join(self.results, output), "w") as f:
+            data = dict()
+            for tag in self.country_data:
+                data[tag] = tag
+                data[self.country_data[tag]["country"]] = tag
+            # Add nicknames or common names for countries here
+            data["Rome"] = "ROM"
+            data["Mongols"] = "MON"
+            json.dump(data, f, ensure_ascii=False, indent=4)
+
     def process_data(self):
         colonial_continents = ["north_america", "south_america", "australia"]
 
@@ -199,6 +210,7 @@ class EU4_Main:
         self.parse_basic_ideas()
         self.clean_data()
         self.write_data()
+        self.write_names("names.json")
         
 if __name__ == "__main__":
     p = EU4_Main()

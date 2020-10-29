@@ -114,18 +114,71 @@ class EU4_Main:
             for key in to_pop:
                 self.country_data[tag].pop(key)
 
+    def parse_variable_idea(self, key, text, tag):
+        result_key = self.parse_variable_helper(key)
+        pass
+
+    def parse_leader(self, data, full=False):
+        pass
+
+    def parse_general(self, data):
+        pass
+
+    def parse_variable_helper(self, text):
+        text = [i.capitalize() for i in text.split("_")]
+        if text[0] == tag:
+            text = text[1:]
+        if text[-1] in ["reform", "culture", "area", "group"]: # add more to this
+            text = text[:-1]
+        text = " ".join(text)
+
+    def parse_variable(self, key, data):
+        result_key = self.parse_variable_helper(key)
+        if type(text) == list:
+            result_text = ", ".join(result)
+        else:
+            result_text = self.parse_variable_helper(text)
+        return result_key, result_text
+
+    def add_parse(self, result, embed):
+        embed["fields"].append(result[0])
+        embed["messages"].append(result[1])
+
+    def format_idea(self, data):
+        embed = {"title": "", "fields": [], "messages": [], "image_path": ""}
+        embed["title"] = data["tag"] + ": " + data["country"]
+        self.add_parse(self.parse_variable("tradition", data), embed)
+        embed["messages"].append(self.parse_variable())
+        for i in range(1, 8):
+            self.add_parse(self.parse_variable_idea("idea_" + str(i), data), embed)
+        self.add_parse(self.parse_variable("ambition", data), embed)
+
+    def format_important(self, data):
+        embed = self.format_idea(data)
+        embed.add_embed()
+        # do specific variable parsing here
+        for key in []: # add important keys here
+            pass
+        
+    def format_full(self, data):
+        embed = self.format_idea(data)
+        # iterate through every non-idea variable, pass in name/data and return header/text
+        pass
+
     def write_data(self):
         create_folder(self.results)
         create_folder(os.path.join(self.results, "tags"))
-        create_folder(os.path.join(self.results, "idea_groups"))
+        create_folder(os.path.join(self.results, "ideas"))
+        create_folder(os.path.join(self.results, "basic"))
 
         for tag in self.country_data:
             path = os.path.join(self.results, "tags", tag + ".txt")
+            idea_path = os.path.join(self.results, "ideas", tag + ".txt")
             with open(path, "w") as f:
                 json.dump(self.country_data[tag], f)
 
         for idea in self.basic_ideas:
-            path = os.path.join(self.results, "idea_groups", idea + ".txt")
+            path = os.path.join(self.results, "basic", idea + ".txt")
             with open(path, "w") as f:
                 json.dump(self.basic_ideas[idea], f)
 

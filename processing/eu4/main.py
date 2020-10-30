@@ -35,6 +35,8 @@ class EU4_Main:
         self.areas = maps.parse_file("../../raw_data/eu4/map/area.txt")
         self.regions = maps.parse_file("../../raw_data/eu4/map/region.txt")
         self.continents = maps.parse_file("../../raw_data/eu4/map/continent.txt")
+        self.country_names = {self.country_data[tag]["country"]: tag for tag in self.country_data}
+
         self.results = results
 
     def write_names(self, output):
@@ -103,41 +105,75 @@ class EU4_Main:
         self.country_data.pop("NAT")
         self.country_data.pop("PIR")
 
+        defunct = ["leader", "change_estate_land_share"]
         for tag in self.country_data:
             to_pop = []
             for key in self.country_data[tag]:
-                if not self.country_data[tag][key]:
+                if not self.country_data[tag][key] or key in defunct:
                     to_pop.append(key)
-                if "base_tax" in self.country_data[tag]:
-                    self.country_data[tag]["dev_total"] = self.country_data[tag]["dev_tax"] + \
-                        self.country_data[tag]["dev_production"] + self.country_data[tag]["dev_manpower"]
+
+            if "dev_tax" in self.country_data[tag]:
+                self.country_data[tag]["dev_total"] = self.country_data[tag]["dev_tax"] + \
+                    self.country_data[tag]["dev_production"] + self.country_data[tag]["dev_manpower"]
+
+            if "has_reform" in self.country_data[tag]:
+                self.country_data[tag]["feudal"] = "yes"
+                to_pop.append("has_reform")
+            else:
+                self.country_data[tag]["feudal"] = "no"
+
             for key in to_pop:
                 self.country_data[tag].pop(key)
 
-    def parse_variable_idea(self, key, text, tag):
-        result_key = self.parse_variable_helper(key)
+    def parse_variable_idea_value(self, data):
+        # for specific values e.g. [["diplomatic_reputation", "1"], ["global_manpower_modifier", "0.20"]]
         pass
 
-    def parse_leader(self, data, full=False):
-        pass
+    def parse_variable_idea(self, name, data, tag):
+        if name in ["tradition", "ambition"]:
+            field = name.capitalize()
+        else:
+            field = self.parse_variable_helper(name, ["name"])
+            field += self.parse_variable_helper(data[name], [tag])
+        return field, self.parse_variable_idea_value(data[name])
 
-    def parse_general(self, data):
-        pass
+    def parse_leader_short(self, key, data):
+        fields = [self.parse_variable_helper(key) + " Stats"]
+        messages = [data[key]["adm"] + "/" + data[key]["dip"] + "/" data[key]["mil"]]
+        return fields, messages
+    
+    def parse_leader_full(self, key, data):
+        fields, messages = self.parse_leader_short(key, data)
+        fields.append(key.capitalize() + " Name")
+        messages.append(data[key]["name"] + " " + data[key]["dynasty"])
+        fields.append(key.capitalize() + " Age")
+        messages.append(calculate_age(data[key]["birth_date"]))
 
-    def parse_variable_helper(self, text):
-        text = [i.capitalize() for i in text.split("_")]
-        if text[0] == tag:
-            text = text[1:]
-        if text[-1] in ["reform", "culture", "area", "group"]: # add more to this
-            text = text[:-1]
-        text = " ".join(text)
+        if "add_" + key + "_personality" in data:
+            fields.append(key.capitalize() + " Personality")
+            messages.append(self.parse_variable_helper(data["add_" + key + "_personality"], ["personality"]))
+        return fields, messages
+
+    def parse_variable_helper(self, item, prefix_suffix = []):
+        result = []
+        for text in item.split("|"):
+            text = [i.capitalize() for i in text.split("_")]
+            if text[0] == prefix_suffix:
+                text = text[1:]
+            if text[-1] in prefix_suffix:
+                text = text[:-1]
+            result.append(" ".join(text))
+        return ", ".join(result)
 
     def parse_variable(self, key, data):
-        result_key = self.parse_variable_helper(key)
+        key_fluff = ["reform", "dev", "add", "set"]
+        value_fluff = ["reform", "area", "group"]
+
+        result_key = self.parse_variable_helper(key, key_fluff)
         if type(text) == list:
-            result_text = ", ".join(result)
+            result_text = ", ".join([self.country_names[tag] for tag in results])
         else:
-            result_text = self.parse_variable_helper(text)
+            result_text = self.parse_variable_helper(text, value_fluff)
         return result_key, result_text
 
     def add_parse(self, result, embed):
@@ -157,6 +193,7 @@ class EU4_Main:
         embed = self.format_idea(data)
         embed.add_embed()
         # do specific variable parsing here
+
         for key in []: # add important keys here
             pass
         

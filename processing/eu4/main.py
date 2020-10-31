@@ -145,6 +145,8 @@ class EU4_Main:
         return field, self.parse_variable_idea_value(data[name])
 
     def parse_leader_short(self, key, data):
+        if key not in data:
+            return [], []
         fields = [self.parse_variable_helper(key) + " Stats"]
         messages = [data[key]["adm"] + "/" + data[key]["dip"] + "/" data[key]["mil"]]
         return fields, messages
@@ -184,8 +186,12 @@ class EU4_Main:
         return result_key, result_text
 
     def add_parse(self, result, embed):
-        embed["fields"].append(result[0])
-        embed["messages"].append(result[1])
+        if type(result) == list:
+            embed["fields"].extend(result[0])
+            embed["messages"].extend(result[1])     
+        else:
+            embed["fields"].append(result[0])
+            embed["messages"].append(result[1])
 
     def format_idea(self, data):
         embed = {"title": "", "fields": [], "messages": [], "image_path": ""}
@@ -197,17 +203,20 @@ class EU4_Main:
         self.add_parse(self.parse_variable("ambition", data), embed)
 
     def format_important(self, data):
-        embed = self.format_idea(data)
-        embed.add_embed()
-        # do specific variable parsing here
-
-        for key in []: # add important keys here
-            pass
+        embed = self.format_idea(data) 
+        self.add_parse(self.parse_leader_short("monarch", data), embed)
+        for key in ["vasssal", "overlord", "tributary", "hegemon", "guaranteeing", "guarantor", "junior", "senior", "alliance"]:
+            self.add_parse(self.parse_variable(key, data), embed)
+        return embed
         
     def format_full(self, data):
         embed = self.format_idea(data)
-        # iterate through every non-idea variable, pass in name/data and return header/text
-        pass
+        for key in ["monarch", "heir", "queen"]:
+            self.add_parse(self.parse_variable(key, data), embed)
+        for key in data:
+            if "idea" not in key and key not in ["tradition", "ambition", "monarch", "heir", "queen"]:
+                self.add_parse(self.parse_variable(key, data), embed)
+        return embed
 
     def write_data(self):
         create_folder(self.results)

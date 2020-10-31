@@ -146,6 +146,13 @@ class EU4_Main:
             field += ": " + self.parse_variable_helper(data[name + "_name"], [data["tag"]])
         return field, self.parse_variable_idea_value(data[name])
 
+    def parse_development(self, data):
+        if "dev_total" not in data:
+            return [], []
+        message = str(data["dev_total"]) + " (" + str(data["dev_tax"]) + "/" + \
+            str(data["dev_production"]) + "/" + str(data["dev_manpower"]) + ")"
+        return "Total Development", message
+
     def parse_leader_short(self, key, data):
         if key not in data:
             return [], []
@@ -174,13 +181,13 @@ class EU4_Main:
     def parse_variable_helper(self, item, prefix_suffix = []):
         result = []
         for text in item.split("|"):
-            text = " ".join([i.capitalize() for i in text.split(" ")])
-            text = [i.capitalize() for i in text.split("_")]
+            text = text.split("_")
             if text[0] == prefix_suffix:
                 text = text[1:]
             if text[-1] in prefix_suffix:
                 text = text[:-1]
-            result.append(" ".join(text))
+            text = " ".join(text)
+            result.append(" ".join([i.capitalize() for i in text.split(" ")]))
         return ", ".join(result)
 
     def parse_variable(self, key, data):
@@ -222,16 +229,21 @@ class EU4_Main:
         return embed
 
     def format_important(self, data, embed):
+        dependencies = ["vassal", "overlord", "tributary", "hegemon", "guaranteeing", 
+                        "guarantor", "junior", "senior", "alliance"]
         self.add_parse(self.parse_leader_short("monarch", data), embed)
-        for key in ["vassal", "overlord", "tributary", "hegemon", "guaranteeing", "guarantor", "junior", "senior", "alliance"]:
+        self.add_parse(self.parse_development(data), embed)
+        for key in dependencies:
             self.add_parse(self.parse_variable(key, data), embed)
         return embed
         
     def format_full(self, data, embed):
         for key in ["monarch", "heir", "queen"]:
             self.add_parse(self.parse_leader_full(key, data), embed)
+        self.add_parse(self.parse_development(data), embed)
+        used_keys = ["tag", "country", "tradition", "ambition", "monarch", "heir", "queen"]
         for key in data:
-            if "idea" not in key and key not in ["tag", "country", "tradition", "ambition", "monarch", "heir", "queen"]:
+            if "idea" not in key and "dev" not in key and key not in used_keys:
                 self.add_parse(self.parse_variable(key, data), embed)
         return embed
 

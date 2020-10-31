@@ -10,6 +10,7 @@ from culture import EU4_Parser_Culture
 from religion import EU4_Parser_Religion
 from map import EU4_Parser_Map
 from copy import copy
+from flag import EU4_Parser_Flag
 
 class EU4_Main:
     def __init__(self, results = "results"):
@@ -35,8 +36,9 @@ class EU4_Main:
         self.areas = maps.parse_file("../../raw_data/eu4/map/area.txt")
         self.regions = maps.parse_file("../../raw_data/eu4/map/region.txt")
         self.continents = maps.parse_file("../../raw_data/eu4/map/continent.txt")
-        self.country_names = {self.country_data[tag]["country"]: tag for tag in self.country_data}
+        self.flags = flags.process_flags("../../raw_data/eu4/flags")
 
+        self.country_names = {self.country_data[tag]["country"]: tag for tag in self.country_data}
         self.results = results
 
     def write_names(self, output):
@@ -201,11 +203,15 @@ class EU4_Main:
         for i in range(1, 8):
             self.add_parse(self.parse_variable_idea("idea_" + str(i), data), embed)
         self.add_parse(self.parse_variable("ambition", data), embed)
+        # Temporary solution for images: store them in files and then upload them to discord on call.
+        # TODO: complete this path after making the image module.
+        image_path = ""
+        return embed
 
     def format_important(self, data):
         embed = self.format_idea(data) 
         self.add_parse(self.parse_leader_short("monarch", data), embed)
-        for key in ["vasssal", "overlord", "tributary", "hegemon", "guaranteeing", "guarantor", "junior", "senior", "alliance"]:
+        for key in ["vassal", "overlord", "tributary", "hegemon", "guaranteeing", "guarantor", "junior", "senior", "alliance"]:
             self.add_parse(self.parse_variable(key, data), embed)
         return embed
         
@@ -225,15 +231,21 @@ class EU4_Main:
         create_folder(os.path.join(self.results, "basic"))
 
         for tag in self.country_data:
-            path = os.path.join(self.results, "tags", tag + ".txt")
-            idea_path = os.path.join(self.results, "ideas", tag + ".txt")
-            with open(path, "w") as f:
-                json.dump(self.country_data[tag], f)
+            path_idea = os.path.join(self.results, "ideas", tag + ".json")
+            path_important = os.path.join(self.results, "important", tag + ".json")
+            path_full = os.path.join(self.results, "full", tag + ".json")
+
+            with open(path,_idea "w") as f:
+                json.dump(self.format_idea(self.country_data[tag]), f)
+            with open(path_important, "w") as f:
+                json.dump(self.format_important(self.country_data[tag]), f)
+            with open(path_full, "w") as f:
+                json.dump(self.format_full(self.country_data[tag]), f)
 
         for idea in self.basic_ideas:
-            path = os.path.join(self.results, "basic", idea + ".txt")
+            path = os.path.join(self.results, "basic", idea + ".json")
             with open(path, "w") as f:
-                json.dump(self.basic_ideas[idea], f)
+                json.dump(self.format_idea(self.basic_ideas[idea]), f)
 
     def add_idea(self, idea, tag):
         idea_num = 0

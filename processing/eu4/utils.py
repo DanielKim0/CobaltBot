@@ -18,7 +18,7 @@ def create_folder(path):
     if not os.path.exists(path):
         os.makedirs(path)
 
-def calculate_age(self, birth_date):
-    return relativedelta(START_DATE, birth_date).years
+def calculate_age(birth_date):
+    return str(relativedelta(START_DATE, convert_to_date(birth_date)).years)
 
 START_DATE = convert_to_date("1444.11.11")

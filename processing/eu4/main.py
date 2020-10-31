@@ -10,7 +10,7 @@ from culture import EU4_Parser_Culture
 from religion import EU4_Parser_Religion
 from map import EU4_Parser_Map
 from copy import copy
-from flag import EU4_Parser_Flag
+# from flag import EU4_Parser_Flag
 
 class EU4_Main:
     def __init__(self, results = "results"):
@@ -36,9 +36,9 @@ class EU4_Main:
         self.areas = maps.parse_file("../../raw_data/eu4/map/area.txt")
         self.regions = maps.parse_file("../../raw_data/eu4/map/region.txt")
         self.continents = maps.parse_file("../../raw_data/eu4/map/continent.txt")
-        self.flags = flags.process_flags("../../raw_data/eu4/flags")
+        # self.flags = flags.process_flags("../../raw_data/eu4/flags")
 
-        self.country_names = {self.country_data[tag]["country"]: tag for tag in self.country_data}
+        self.country_names = {tag: self.country_data[tag]["country"] for tag in self.country_data}
         self.results = results
 
     def write_names(self, output):
@@ -130,35 +130,41 @@ class EU4_Main:
     def parse_variable_idea_value(self, data):
         final = []
         for item in data:
-            if "." in item[1]:
-                item[1] = float(item[1]) * 100
-            if "-" not in item[1]:
+            if "." in item[1] and "%" not in item[1]:
+                item[1] += "%"
+            if "-" not in item[1] and "+" not in item[1]:
                 item[1] = "+" + item[1]
             item[0] = self.parse_variable_helper(item[0])
             final.append(item[1] + " " + item[0])
         return ", ".join(final)
 
-    def parse_variable_idea(self, name, data, tag):
+    def parse_variable_idea(self, name, data):
         if name in ["tradition", "ambition"]:
             field = name.capitalize()
         else:
             field = self.parse_variable_helper(name, ["name"])
-            field += self.parse_variable_helper(data[name], [tag])
+            field += ": " + self.parse_variable_helper(data[name + "_name"], [data["tag"]])
         return field, self.parse_variable_idea_value(data[name])
 
     def parse_leader_short(self, key, data):
         if key not in data:
             return [], []
+        data[key] = {k.lower(): v for k, v in data[key].items()}
         fields = [self.parse_variable_helper(key) + " Stats"]
-        messages = [data[key]["adm"] + "/" + data[key]["dip"] + "/" data[key]["mil"]]
+        messages = [data[key]["adm"] + "/" + data[key]["dip"] + "/" + data[key]["mil"]]
         return fields, messages
     
     def parse_leader_full(self, key, data):
+        if key not in data:
+            return [], []
         fields, messages = self.parse_leader_short(key, data)
-        fields.append(key.capitalize() + " Name")
-        messages.append(data[key]["name"] + " " + data[key]["dynasty"])
-        fields.append(key.capitalize() + " Age")
-        messages.append(calculate_age(data[key]["birth_date"]))
+        if "birth_date" in data[key]:
+            messages[-1] += ", " + calculate_age(data[key]["birth_date"]) + " years old"
+
+        fields.insert(0, key.capitalize() + " Name")
+        messages.insert(0, data[key]["name"])
+        if "dynasty" in data[key]:
+            messages[0] += " of the " + data[key]["dynasty"] + " dynasty"
 
         if "add_" + key + "_personality" in data:
             fields.append(key.capitalize() + " Personality")
@@ -168,6 +174,7 @@ class EU4_Main:
     def parse_variable_helper(self, item, prefix_suffix = []):
         result = []
         for text in item.split("|"):
+            text = " ".join([i.capitalize() for i in text.split(" ")])
             text = [i.capitalize() for i in text.split("_")]
             if text[0] == prefix_suffix:
                 text = text[1:]
@@ -177,57 +184,62 @@ class EU4_Main:
         return ", ".join(result)
 
     def parse_variable(self, key, data):
+        if key not in data:
+            return [], []
         key_fluff = ["reform", "dev", "add", "set"]
         value_fluff = ["reform", "area", "group"]
 
         result_key = self.parse_variable_helper(key, key_fluff)
-        if type(text) == list:
-            result_text = ", ".join([self.country_names[tag] for tag in results])
+        if type(data[key]) == list:
+            result_text = ", ".join([tag + "(" + self.country_names[tag] + ")" for tag in data[key]])
         else:
-            result_text = self.parse_variable_helper(text, value_fluff)
+            result_text = self.parse_variable_helper(str(data[key]), value_fluff)
         return result_key, result_text
 
     def add_parse(self, result, embed):
-        if type(result) == list:
-            embed["fields"].extend(result[0])
-            embed["messages"].extend(result[1])     
-        else:
-            embed["fields"].append(result[0])
-            embed["messages"].append(result[1])
+        if result[0] and result[1]:
+            if type(result[0]) == list:
+                embed["fields"].extend(result[0])
+                embed["messages"].extend(result[1])     
+            else:
+                embed["fields"].append(result[0])
+                embed["messages"].append(result[1])
 
     def format_idea(self, data):
         embed = {"title": "", "fields": [], "messages": [], "image_path": ""}
         embed["title"] = data["tag"] + ": " + data["country"]
-        self.add_parse(self.parse_variable("tradition", data), embed)
-        embed["messages"].append(self.parse_variable())
-        for i in range(1, 8):
-            self.add_parse(self.parse_variable_idea("idea_" + str(i), data), embed)
-        self.add_parse(self.parse_variable("ambition", data), embed)
+        if "tradition" in data:
+            self.add_parse(self.parse_variable_idea("tradition", data), embed)
+            for i in range(1, 8):
+                self.add_parse(self.parse_variable_idea("idea_" + str(i), data), embed)
+            self.add_parse(self.parse_variable_idea("ambition", data), embed)
+        else:
+            self.add_parse(("Error", "No ideas found for this tag!"), embed)
+        
         # Temporary solution for images: store them in files and then upload them to discord on call.
         # TODO: complete this path after making the image module.
         image_path = ""
         return embed
 
-    def format_important(self, data):
-        embed = self.format_idea(data) 
+    def format_important(self, data, embed):
         self.add_parse(self.parse_leader_short("monarch", data), embed)
         for key in ["vassal", "overlord", "tributary", "hegemon", "guaranteeing", "guarantor", "junior", "senior", "alliance"]:
             self.add_parse(self.parse_variable(key, data), embed)
         return embed
         
-    def format_full(self, data):
-        embed = self.format_idea(data)
+    def format_full(self, data, embed):
         for key in ["monarch", "heir", "queen"]:
-            self.add_parse(self.parse_variable(key, data), embed)
+            self.add_parse(self.parse_leader_full(key, data), embed)
         for key in data:
-            if "idea" not in key and key not in ["tradition", "ambition", "monarch", "heir", "queen"]:
+            if "idea" not in key and key not in ["tag", "country", "tradition", "ambition", "monarch", "heir", "queen"]:
                 self.add_parse(self.parse_variable(key, data), embed)
         return embed
 
     def write_data(self):
         create_folder(self.results)
-        create_folder(os.path.join(self.results, "tags"))
         create_folder(os.path.join(self.results, "ideas"))
+        create_folder(os.path.join(self.results, "important"))
+        create_folder(os.path.join(self.results, "full"))
         create_folder(os.path.join(self.results, "basic"))
 
         for tag in self.country_data:
@@ -235,17 +247,21 @@ class EU4_Main:
             path_important = os.path.join(self.results, "important", tag + ".json")
             path_full = os.path.join(self.results, "full", tag + ".json")
 
-            with open(path,_idea "w") as f:
-                json.dump(self.format_idea(self.country_data[tag]), f)
-            with open(path_important, "w") as f:
-                json.dump(self.format_important(self.country_data[tag]), f)
-            with open(path_full, "w") as f:
-                json.dump(self.format_full(self.country_data[tag]), f)
+            embed = self.format_idea(self.country_data[tag])
+            with open(path_idea, "w") as f:
+                json.dump(embed, f)
+            if "tradition" not in self.country_data[tag]:
+                embed = {"title": "", "fields": [], "messages": [], "image_path": ""}
 
-        for idea in self.basic_ideas:
-            path = os.path.join(self.results, "basic", idea + ".json")
-            with open(path, "w") as f:
-                json.dump(self.format_idea(self.basic_ideas[idea]), f)
+            with open(path_important, "w") as f:
+                json.dump(self.format_important(self.country_data[tag], embed), f)
+            with open(path_full, "w") as f:
+                json.dump(self.format_full(self.country_data[tag], embed), f)
+
+        # for idea in self.basic_ideas:
+        #     path = os.path.join(self.results, "basic", idea + ".json")
+        #     with open(path, "w") as f:
+        #         json.dump(self.format_idea(self.basic_ideas[idea]), f)
 
     def add_idea(self, idea, tag):
         idea_num = 0

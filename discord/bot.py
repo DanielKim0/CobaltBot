@@ -16,15 +16,16 @@ class CobaltCog(commands.Cog):
             await ctx.send(msg)
         return valid
     
-    async def make_embed(self, fields, messages, image_path=None):
+    async def make_embed(self, title, fields, messages, image_path=None):
         embed = discord.Embed()
+        embed.add_title(title)
         for i in range(len(fields)):
             embed.add_field(name=fields[i], value=messages[i], inline=True)
             
         if image_path is not None:
             img_name = os.path.basename(image_path)
             attachment = discord.Attachment(image_path, img_name)
-            embed.set_image(url="attachment://" + img_name)
+            embed.set_thumbnail(url="attachment://" + img_name)
         return embed
 
 class CobaltBot(commands.Bot):

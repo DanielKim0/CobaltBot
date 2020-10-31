@@ -126,8 +126,15 @@ class EU4_Main:
                 self.country_data[tag].pop(key)
 
     def parse_variable_idea_value(self, data):
-        # for specific values e.g. [["diplomatic_reputation", "1"], ["global_manpower_modifier", "0.20"]]
-        pass
+        final = []
+        for item in data:
+            if "." in item[1]:
+                item[1] = float(item[1]) * 100
+            if "-" not in item[1]:
+                item[1] = "+" + item[1]
+            item[0] = self.parse_variable_helper(item[0])
+            final.append(item[1] + " " + item[0])
+        return ", ".join(final)
 
     def parse_variable_idea(self, name, data, tag):
         if name in ["tradition", "ambition"]:

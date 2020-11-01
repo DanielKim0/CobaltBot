@@ -10,10 +10,11 @@ from culture import EU4_Parser_Culture
 from religion import EU4_Parser_Religion
 from map import EU4_Parser_Map
 from copy import copy
-# from flag import EU4_Parser_Flag
+from flag import EU4_Flag_Converter
 
 class EU4_Main:
     def __init__(self, results = "results"):
+        self.results = results
         country = EU4_Parser_Country()
         province = EU4_Parser_Province()
         diplomacy = EU4_Parser_Diplomacy()
@@ -21,6 +22,7 @@ class EU4_Main:
         ideas = EU4_Parser_Idea()
         religion = EU4_Parser_Religion()
         maps = EU4_Parser_Map()
+        flag = EU4_Flag_Converter()
 
         self.country_data = country.parse_folder("../../raw_data/eu4/countries")
         self.tag_list = set(self.country_data.keys())
@@ -36,10 +38,8 @@ class EU4_Main:
         self.areas = maps.parse_file("../../raw_data/eu4/map/area.txt")
         self.regions = maps.parse_file("../../raw_data/eu4/map/region.txt")
         self.continents = maps.parse_file("../../raw_data/eu4/map/continent.txt")
-        # self.flags = flags.process_flags("../../raw_data/eu4/flags")
-
+        self.flags = flag.process_flags("../../raw_data/eu4/flags", os.path.join(self.results, "images"))
         self.country_names = {tag: self.country_data[tag]["country"] for tag in self.country_data}
-        self.results = results
 
     def write_names(self, output):
         with open(os.path.join(self.results, output), "w") as f:
@@ -278,8 +278,7 @@ class EU4_Main:
             self.add_parse(("Error", "No ideas found for this tag!"), embed)
         
         # Temporary solution for images: store them in files and then upload them to discord on call.
-        # TODO: complete this path after making the image module.
-        image_path = ""
+        embed["image_path"] = os.path.join(self.flags, data["tag"] + ".png")
         return embed
 
     def format_important(self, data, embed):
@@ -317,7 +316,7 @@ class EU4_Main:
             with open(path_idea, "w") as f:
                 json.dump(embed, f)
             if "tradition" not in self.country_data[tag]:
-                embed = {"title": "", "fields": [], "messages": [], "image_path": ""}
+                embed = {"title": "", "fields": [], "messages": [], "image_path": embed["image_path"]}
 
             with open(path_important, "w") as f:
                 json.dump(self.format_important(self.country_data[tag], embed), f)

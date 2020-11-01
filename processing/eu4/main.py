@@ -45,16 +45,27 @@ class EU4_Main:
         with open(os.path.join(self.results, output), "w") as f:
             data = dict()
             for tag in self.country_data:
-                data[tag] = tag
-                data[self.country_data[tag]["country"]] = tag
+                data[tag.lower()] = tag
+                data[self.country_data[tag]["country"].lower()] = tag
             for idea in self.basic_ideas:
-                idea = idea.split("_")[0]
+                data[idea.split("_")[0]] = idea
+                data[idea.replace("_", " ")] = idea
                 data[idea] = idea
 
-        # Add nicknames or common names here
-            data["Rome"] = "ROM"
-            data["Mongols"] = "MON"
-            data["espionage"] = "spy"
+            # Add nicknames or common names here
+            data["rome"] = "ROM"
+            data["mongols"] = "MON"
+            data["chin"] = "HAB"
+
+            # Nicknames for ideas
+            nicknames = ["espionage", "admin", "innovative", "plutocratic", "diplo", 
+                        "econ", "expo", "expa", "aristocratic", "qual", "quant"]
+            fullnames = ["spy", "administrative", "innovativeness", "plutocracy", "diplomatic", 
+                        "economic", "exploration", "expansion", "aristocracy", "quality", "quantity"]
+            for i in range(len(nicknames)):
+                data[nicknames[i]] = data[fullnames[i] + "_ideas"]
+                data[nicknames[i] + " ideas"] = data[fullnames[i] + "_ideas"]
+
             json.dump(data, f, ensure_ascii=False, indent=4)
 
     def process_data(self):
@@ -136,7 +147,11 @@ class EU4_Main:
                 item[1] = "+" + item[1]
             item[0] = self.parse_variable_helper(item[0])
             final.append(item[1] + " " + item[0])
-        return ", ".join(final)
+        final = "\n".join(final)
+        # Hardcoded string replacements
+        final = final.replace("Ae", "Aggressive Expansion")
+        final = final.replace("Nationalism", "Seperatism")
+        return final
 
     def parse_variable_idea(self, name, data):
         if name in ["tradition", "ambition"]:
@@ -178,7 +193,7 @@ class EU4_Main:
             messages.append(self.parse_variable_helper(data["add_" + key + "_personality"], ["personality"]))
         return fields, messages
 
-    def parse_variable_helper(self, item, prefix_suffix = []):
+    def parse_variable_helper(self, item, prefix_suffix = [], replace=False):
         result = []
         for text in item.split("|"):
             text = text.split("_")
@@ -186,8 +201,8 @@ class EU4_Main:
                 text = text[1:]
             if text[-1] in prefix_suffix:
                 text = text[:-1]
-            text = " ".join(text)
-            result.append(" ".join([i.capitalize() for i in text.split(" ")]))
+            text = " ".join([i.capitalize() for i in " ".join(text).split(" ")])
+            result.append(text)
         return ", ".join(result)
 
     def parse_variable(self, key, data):
@@ -211,6 +226,21 @@ class EU4_Main:
             else:
                 embed["fields"].append(result[0])
                 embed["messages"].append(result[1])
+
+    def format_basic_idea(self, data):
+        embed = {"title": "", "fields": [], "messages": []}
+        embed["title"] = self.parse_variable_helper(data[0])
+        self.add_parse((self.parse_variable_helper(data[1][0]), self.parse_variable_helper(data[1][1])), embed)
+
+        if data[3][0] == "trigger":
+            start, end = 4, 11
+        else:
+            start, end = 3, 10
+
+        for i in range(start, end):
+            embed["fields"].append("Idea " + str(i - start + 1) + ": " + self.parse_variable_helper(data[i][0]))
+            embed["messages"].append(self.parse_variable_idea_value(data[i][1:]))
+        return embed
 
     def format_idea(self, data):
         embed = {"title": "", "fields": [], "messages": [], "image_path": ""}
@@ -270,10 +300,10 @@ class EU4_Main:
             with open(path_full, "w") as f:
                 json.dump(self.format_full(self.country_data[tag], embed), f)
 
-        # for idea in self.basic_ideas:
-        #     path = os.path.join(self.results, "basic", idea + ".json")
-        #     with open(path, "w") as f:
-        #         json.dump(self.format_idea(self.basic_ideas[idea]), f)
+        for idea in self.basic_ideas:
+            path = os.path.join(self.results, "basic", idea + ".json")
+            with open(path, "w") as f:
+                json.dump(self.format_basic_idea(self.basic_ideas[idea]), f)
 
     def add_idea(self, idea, tag):
         idea_num = 0
@@ -311,6 +341,7 @@ class EU4_Main:
                     or_valid = True
             if not or_valid:
                 return False
+
         elif condition[0] == "NOT":
             for cond in condition[1:]:
                 if self.verify_condition(cond, idea, tag):

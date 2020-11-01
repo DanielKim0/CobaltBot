@@ -140,13 +140,23 @@ class EU4_Main:
 
     def parse_variable_idea_value(self, data):
         final = []
+        do_not_multiply = ["republican_tradition", "inflation_reduction", "yearly_corruption", 
+            "army_tradition", "navy_tradition", "monthly_fervor_increase", "global_autonomy", 
+            "devotion", "hostile_attrition"]
+
         for item in data:
-            if "." in item[1] and "%" not in item[1]:
-                item[1] += "%"
-            if "-" not in item[1] and "+" not in item[1]:
-                item[1] = "+" + item[1]
+            if "+" not in item[1] and "%" not in item[1]:
+                if "." in item[1]:
+                    if item[0] not in do_not_multiply:
+                        item[1] = str(float(item[1]) * 100) + "%"
+                if "-" not in item[1]:
+                    item[1] = "+" + item[1]
             item[0] = self.parse_variable_helper(item[0])
-            final.append(item[1] + " " + item[0])
+            if item[1] != "+yes":
+                final.append(item[1] + " " + item[0])
+            else:
+                final.append(item[0])
+
         final = "\n".join(final)
         # Hardcoded string replacements
         final = final.replace("Ae", "Aggressive Expansion")
@@ -197,7 +207,7 @@ class EU4_Main:
         result = []
         for text in item.split("|"):
             text = text.split("_")
-            if text[0] == prefix_suffix:
+            if text[0] in prefix_suffix:
                 text = text[1:]
             if text[-1] in prefix_suffix:
                 text = text[:-1]
@@ -250,6 +260,20 @@ class EU4_Main:
             for i in range(1, 8):
                 self.add_parse(self.parse_variable_idea("idea_" + str(i), data), embed)
             self.add_parse(self.parse_variable_idea("ambition", data), embed)
+            
+            # Check to see if each of the seven ideas starts with the same thing and remove
+            prefix = embed["fields"][1].split(" ")[2]
+            remove = True
+            for i in range(2, 8):
+                if embed["fields"][i].split(" ")[2] != prefix:
+                    remove = False
+                    break
+            if remove:
+                for i in range(1, 8):
+                    temp = embed["fields"][i].split(" ")
+                    temp.pop(2)
+                    embed["fields"][i] = " ".join(temp)
+
         else:
             self.add_parse(("Error", "No ideas found for this tag!"), embed)
         

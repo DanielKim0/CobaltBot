@@ -45,9 +45,9 @@ class EU4Cog(CobaltCog):
         string = await self.nearest_spelling(ctx, string)
         if string is not None:
             if full_data in ["all", "full", "complete"]:
-                embed = await self.fetch_embed(ctx, string, self.full_data)
+                embed = await self.fetch_embed(string, self.full_data)
             elif full_data in ["imp", "impor", "important"]:
-                embed = await self.fetch_embed(ctx, string, self.impor_data)
+                embed = await self.fetch_embed(string, self.impor_data)
             else:
-                embed = await self.fetch_embed(ctx, string, self.idea_data)
-            await ctx.send(embed)
+                embed = await self.fetch_embed(string, self.idea_data)
+            await ctx.send(embed=embed)

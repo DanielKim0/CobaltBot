@@ -14,13 +14,12 @@ class CobaltCog(commands.Cog):
         pass
     
     async def make_embed(self, data):
-        embed = discord.Embed()
-        embed.add_title(data["title"])
+        embed = discord.Embed(title = data["title"])
         for i in range(len(data["fields"])):
             embed.add_field(name=data["fields"][i], value=data["messages"][i], inline=True)
             
-        if data["image_path"] is not None:
+        if "image_path" in data["image_path"] and data["image_path"]:
             img_name = os.path.basename(data["image_path"])
-            attachment = discord.Attachment(data["image_path"], img_name)
+            image = discord.File(data["image_path"])
             embed.set_thumbnail(url="attachment://" + img_name)
         return embed

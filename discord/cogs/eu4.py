@@ -9,7 +9,7 @@ import difflib
 
 class EU4Cog(CobaltCog):
     def __init__(self, bot):
-        super().__init__(bot, cog_name, identifiers, full_data, impor_data, idea_data)
+        super().__init__(bot, identifiers, full_data, impor_data, idea_data)
         self.name_map = json.load(identifiers)
         self.identifiers = set(self.name_map.keys)
         self.full_data = full_data

@@ -3,6 +3,7 @@ import random
 import discord
 from dotenv import load_dotenv
 from discord.ext import commands
+from cogs/eu4 import EU4Cog
 
 class CobaltCog(commands.Cog):
     def __init__(self, bot, cog_name):
@@ -74,7 +75,7 @@ class CobaltBot(commands.Bot):
     # TODO below
     @commands.command(name="help")
     async def help(self, pass_context=True):
-        # Help message sent as response to message in server
+        # Help message sent as response to message in server in the person's DMs
         pass
 
     @commands.command(name="get_prefix", aliases=["prefix", "pre"])
@@ -96,5 +97,12 @@ class CobaltBot(commands.Bot):
     def run(self):
         self.run(self.token)
 
-bot = CobaltBot()
-bot.run()
+if __name__ == "__main__":
+    bot = CobaltBot()
+    identifiers = "/home/daniel/Documents/discord/processing/eu4/results/names.json"
+    full_data = "/home/daniel/Documents/discord/processing/eu4/results/full"
+    impor_data = "/home/daniel/Documents/discord/processing/eu4/results/important"
+    idea_data = "/home/daniel/Documents/discord/processing/eu4/results/ideas"
+    eu4 = EU4Cog(identifiers, full_data, impor_data, idea_data)
+    bot.add_cog()
+    bot.run()

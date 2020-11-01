@@ -305,7 +305,6 @@ class EU4_Main:
         create_folder(os.path.join(self.results, "ideas"))
         create_folder(os.path.join(self.results, "important"))
         create_folder(os.path.join(self.results, "full"))
-        create_folder(os.path.join(self.results, "basic"))
 
         for tag in self.country_data:
             path_idea = os.path.join(self.results, "ideas", tag + ".json")
@@ -324,7 +323,7 @@ class EU4_Main:
                 json.dump(self.format_full(self.country_data[tag], embed), f)
 
         for idea in self.basic_ideas:
-            path = os.path.join(self.results, "basic", idea + ".json")
+            path = os.path.join(self.results, "ideas", idea + ".json")
             with open(path, "w") as f:
                 json.dump(self.format_basic_idea(self.basic_ideas[idea]), f)
 

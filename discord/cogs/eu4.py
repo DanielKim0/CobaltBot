@@ -9,10 +9,11 @@ import difflib
 
 class EU4Cog(CobaltCog):
     def __init__(self, bot):
-        super().__init__(bot, cog_name, identifiers, tag_data, idea_data)
+        super().__init__(bot, cog_name, identifiers, full_data, impor_data, idea_data)
         self.name_map = json.load(identifiers)
         self.identifiers = set(self.name_map.keys)
-        self.tag_data = tag_data
+        self.full_data = full_data
+        self.impor_data = impor_data
         self.idea_data = idea_data
 
     async def nearest_spelling(self, ctx, string):
@@ -27,17 +28,21 @@ class EU4Cog(CobaltCog):
             await ctx.send(message)
             return None
 
-    async def parse_idea(self, ctx, data):
-
-    async def parse_data(self, ctx, data):
+    async def fetch_embed(self, string, path):
+        filename = os.path.join(path, string + ".json")
+        data = json.load(filename)
+        embed = await self.make_embed(data)
+        return embed
 
     @valid_cog_check
-    @commands.command(name=idea, description="", aliases=[], usage="")
-    async def fetch_idea(self, ctx, string, full_data=""):
+    @commands.command(name=data, description="", aliases=[], usage="")
+    async def fetch_idea(self, ctx, string: str, full_data: str):
         string = await self.nearest_spelling(ctx, string)
         if string is not None:
-            data = json.load()
-            if full_data in ["data", "full"]:
-                await self.parse_data(ctx, data)
+            if full_data in ["all", "full", "complete"]:
+                embed = await self.fetch_embed(ctx, string, self.full_data)
+            elif full_data in ["imp", "impor", "important"]
+                embed = await self.fetch_embed(ctx, string, self.impor_data)
             else:
-                await self.parse_idea(ctx, data)
+                embed = await self.fetch_embed(ctx, string, self.idea_data)
+            await ctx.send(embed)

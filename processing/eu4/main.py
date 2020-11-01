@@ -178,32 +178,86 @@ class EU4_Main:
             str(data["dev_production"]) + "/" + str(data["dev_manpower"]) + ")"
         return "Total Development", message
 
+    def parse_culture(self, data):
+        if "primary_culture" not in data:
+            return [], []
+        message = ""
+        if "culture_group" in data:
+            message = "Culture Group: " + self.parse_variable_helper(data["culture_group"], ["group"]) + "\n"
+        message += "Primary Culture: " + data["primary_culture"] + "\n"
+        if "add_accepted_culture" in data:
+            message += "Accepted Cultures: " + self.parse_variable_helper(data["add_accepted_culture"]) + "\n"
+        return "Culture", message[:-1]
+
+    def parse_capital(self, data):
+        message = "Capital: " + str(data["capital"]) + " (" + data["capital_name"] + ")\n"
+        message += "Region: " + self.parse_variable_helper(data["region"], ["region"]) + "\n"
+        message += "Area: " + self.parse_variable_helper(data["area"], ["area"]) + "\n"
+        message += "Continent: " + data["continent"]
+        return "Capital", message
+
+    def parse_religion(self, data):
+        if "religion" not in data:
+            return [], []
+        if data["religion"] == "buddhism":
+            message = "Primary Religion: Theravada\n"
+        elif data["religion"] == "shamanism":
+            message = "Primary Religion: Fetishist\n"
+        else:
+            message = "Primary Religion: " + self.parse_variable_helper(data["religion"]) + "\n"
+        message += "Religious Group: " + self.parse_variable_helper(data["religion_group"]) + "\n"
+        if "religious_school" in data:
+            message += "Religious School: " + self.parse_variable_helper(data["religious_school"], ["school"]) + "\n"
+        if "unlock_cult" in data:
+            message += "Fetishist Cults: " + self.parse_variable_helper(data["unlock_cult"], ["cult"]) + "\n"
+        return "Religion", message[:-1]
+
+    def parse_government(self, data):
+        ranks = ["Duchy", "Kingdom", "Empire"]
+        message = "Government Type: " + self.parse_variable_helper(data["government"]) + "\n"
+        if "add_government_reform" in data:
+            message += "Government Reform: " + self.parse_variable_helper(data["add_government_reform"]) + "\n"
+        if "government_rank" in data:
+            message += "Government Rank: " + ranks[int(data["government_rank"]) - 1] + "\n"
+        if "feudal" in data:
+            message += "Feudal: Yes\n"
+        else:
+            message += "Feudal: No\n"
+        return "Government", message[:-1]
+
     def parse_leader_short(self, key, data):
         if key not in data:
             return [], []
         data[key] = {k.lower(): v for k, v in data[key].items()}
-        fields = [self.parse_variable_helper(key) + " Stats"]
-        messages = [data[key]["adm"] + "/" + data[key]["dip"] + "/" + data[key]["mil"]]
-        return fields, messages
+        field = self.parse_variable_helper(key) + " Stats"
+        message = data[key]["adm"] + "/" + data[key]["dip"] + "/" + data[key]["mil"]
+        return field, message
     
     def parse_leader_full(self, key, data):
         if key not in data:
             return [], []
-        fields, messages = self.parse_leader_short(key, data)
-        if "birth_date" in data[key]:
-            messages[-1] += ", " + calculate_age(data[key]["birth_date"]) + " years old"
+        field, message = self.parse_leader_short(key, data)
+        field = self.parse_variable_helper(key)
+        message = "Stats: " + message + "\n"
 
-        fields.insert(0, key.capitalize() + " Name")
-        messages.insert(0, data[key]["name"])
+        name = data[key]["name"]
         if "dynasty" in data[key]:
-            messages[0] += " of the " + data[key]["dynasty"] + " dynasty"
+            name += " " + data[key]["dynasty"]
+        message = "Name: " + name + "\n" + message
 
+        if "birth_date" in data[key]:
+            message += "Age: " + calculate_age(data[key]["birth_date"]) + " years old\n"
         if "add_" + key + "_personality" in data:
-            fields.append(key.capitalize() + " Personality")
-            messages.append(self.parse_variable_helper(data["add_" + key + "_personality"], ["personality"]))
-        return fields, messages
+            message += "Traits: " + self.parse_variable_helper(data["add_" + key + "_personality"], ["personality"]) + "\n"
 
-    def parse_variable_helper(self, item, prefix_suffix = [], replace=False):
+        return field, message[:-1]
+
+    def parse_variable_helper(self, item, prefix_suffix = []):
+        if len(item) == 3 and item.isupper():
+            if item not in ["ADM", "DIP", "MIL"]:
+                return item + " (" + self.country_names[item] + ")"
+            else:
+                return item
         result = []
         for text in item.split("|"):
             text = text.split("_")
@@ -223,7 +277,7 @@ class EU4_Main:
 
         result_key = self.parse_variable_helper(key, key_fluff)
         if type(data[key]) == list:
-            result_text = ", ".join([tag + "(" + self.country_names[tag] + ")" for tag in data[key]])
+            result_text = ", ".join([tag + " (" + self.country_names[tag] + ")" for tag in data[key]])
         else:
             result_text = self.parse_variable_helper(str(data[key]), value_fluff)
         return result_key, result_text
@@ -260,20 +314,6 @@ class EU4_Main:
             for i in range(1, 8):
                 self.add_parse(self.parse_variable_idea("idea_" + str(i), data), embed)
             self.add_parse(self.parse_variable_idea("ambition", data), embed)
-            
-            # Check to see if each of the seven ideas starts with the same thing and remove
-            # prefix = embed["fields"][1].split(" ")[2]
-            # remove = True
-            # for i in range(2, 8):
-            #     if embed["fields"][i].split(" ")[2] != prefix:
-            #         remove = False
-            #         break
-            # if remove and prefix not in ["west"]:
-            #     for i in range(1, 8):
-            #         temp = embed["fields"][i].split(" ")
-            #         temp.pop(2)
-            #         embed["fields"][i] = " ".join(temp)
-
         else:
             self.add_parse(("Error", "No ideas found for this tag!"), embed)
         
@@ -286,18 +326,30 @@ class EU4_Main:
                         "guarantor", "junior", "senior", "alliance"]
         self.add_parse(self.parse_leader_short("monarch", data), embed)
         self.add_parse(self.parse_development(data), embed)
+        self.add_parse(self.parse_religion(data), embed)
         for key in dependencies:
             self.add_parse(self.parse_variable(key, data), embed)
         return embed
         
     def format_full(self, data, embed):
+        if "Monarch Stats" in embed["fields"]:
+            ind = embed["fields"].index("Monarch Stats")
+            embed["fields"].pop(ind)
+            embed["messages"].pop(ind)
+        
         for key in ["monarch", "heir", "queen"]:
             self.add_parse(self.parse_leader_full(key, data), embed)
-        self.add_parse(self.parse_development(data), embed)
-        used_keys = ["tag", "country", "tradition", "ambition", "monarch", "heir", "queen"]
-        for key in data:
-            if "idea" not in key and "dev" not in key and key not in used_keys:
-                self.add_parse(self.parse_variable(key, data), embed)
+        self.add_parse(self.parse_government(data), embed)
+        self.add_parse(self.parse_culture(data), embed)
+        
+        # Parsing of other variables that aren't already covered in functions
+        other = ["province_count", "historical_friend", "historical_rival"]
+        for key in other:
+            self.add_parse(self.parse_variable(key, data), embed)
+        if "present" not in data or data["present"] != True:
+            self.add_parse(("Present in 1444", "No"), embed)
+        else:
+            self.add_parse(("Present in 1444", "Yes"), embed)
         return embed
 
     def write_data(self):

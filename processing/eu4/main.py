@@ -184,7 +184,7 @@ class EU4_Main:
         message = ""
         if "culture_group" in data:
             message = "Culture Group: " + self.parse_variable_helper(data["culture_group"], ["group"]) + "\n"
-        message += "Primary Culture: " + data["primary_culture"] + "\n"
+        message += "Primary Culture: " + self.parse_variable_helper(data["primary_culture"]) + "\n"
         if "add_accepted_culture" in data:
             message += "Accepted Cultures: " + self.parse_variable_helper(data["add_accepted_culture"]) + "\n"
         return "Culture", message[:-1]

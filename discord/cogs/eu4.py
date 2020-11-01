@@ -40,14 +40,12 @@ class EU4Cog(CobaltCog):
     # @valid_cog_check
     @commands.command(name="data", description="", aliases=[], usage="")
     async def fetch_idea(self, ctx, string: str, full_data: str):
-        print("string: " + string)
-        print("full_data: " + full_data)
         string = await self.nearest_spelling(ctx, string)
         if string is not None:
             if full_data in ["all", "full", "complete"]:
-                image, embed = await self.fetch_embed(string, self.full_data, True)
+                image, embed = await self.fetch_embed(string, self.full_data, False)
             elif full_data in ["imp", "impor", "important"]:
-                image, embed = await self.fetch_embed(string, self.impor_data, True)
+                image, embed = await self.fetch_embed(string, self.impor_data, False)
             else:
                 image, embed = await self.fetch_embed(string, self.idea_data, False)
             

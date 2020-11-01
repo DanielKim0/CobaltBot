@@ -30,12 +30,12 @@ class EU4Cog(CobaltCog):
             await ctx.send(message)
             return None
 
-    async def fetch_embed(self, string, path):
+    async def fetch_embed(self, string, path, inline=True):
         filename = os.path.join(path, string + ".json")
         with open(filename, "r") as f:
             data = json.load(f)
-        embed = await self.make_embed(data)
-        return embed
+        image, embed = await self.make_embed(data, inline)
+        return image, embed
 
     # @valid_cog_check
     @commands.command(name="data", description="", aliases=[], usage="")
@@ -45,9 +45,13 @@ class EU4Cog(CobaltCog):
         string = await self.nearest_spelling(ctx, string)
         if string is not None:
             if full_data in ["all", "full", "complete"]:
-                embed = await self.fetch_embed(string, self.full_data)
+                image, embed = await self.fetch_embed(string, self.full_data)
             elif full_data in ["imp", "impor", "important"]:
-                embed = await self.fetch_embed(string, self.impor_data)
+                image, embed = await self.fetch_embed(string, self.impor_data)
             else:
-                embed = await self.fetch_embed(string, self.idea_data)
-            await ctx.send(embed=embed)
+                image, embed = await self.fetch_embed(string, self.idea_data)
+            
+            if image:
+                await ctx.send(file=image, embed=embed)
+            else:
+                await ctx.send(embed=embed)

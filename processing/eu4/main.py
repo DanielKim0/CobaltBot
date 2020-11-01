@@ -417,5 +417,5 @@ class EU4_Main:
         self.write_names("names.json")
         
 if __name__ == "__main__":
-    p = EU4_Main()
+    p = EU4_Main("/home/daniel/Documents/discord/processing/eu4/results")
     p.main()

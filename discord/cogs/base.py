@@ -23,5 +23,4 @@ class CobaltCog(commands.Cog):
             img_name = os.path.basename(data["image_path"])
             image = discord.File(data["image_path"], filename = img_name)
             embed.set_thumbnail(url="attachment://" + img_name)
-        print(embed.fields)
         return image, embed

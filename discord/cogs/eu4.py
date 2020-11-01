@@ -45,11 +45,11 @@ class EU4Cog(CobaltCog):
         string = await self.nearest_spelling(ctx, string)
         if string is not None:
             if full_data in ["all", "full", "complete"]:
-                image, embed = await self.fetch_embed(string, self.full_data)
+                image, embed = await self.fetch_embed(string, self.full_data, True)
             elif full_data in ["imp", "impor", "important"]:
-                image, embed = await self.fetch_embed(string, self.impor_data)
+                image, embed = await self.fetch_embed(string, self.impor_data, True)
             else:
-                image, embed = await self.fetch_embed(string, self.idea_data)
+                image, embed = await self.fetch_embed(string, self.idea_data, False)
             
             if image:
                 await ctx.send(file=image, embed=embed)

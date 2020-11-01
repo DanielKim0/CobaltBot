@@ -168,7 +168,7 @@ class EU4_Main:
             field = name.capitalize()
         else:
             field = self.parse_variable_helper(name, ["name"])
-            field += ": " + self.parse_variable_helper(data[name + "_name"], [data["tag"]])
+            field += ": " + self.parse_variable_helper(data[name + "_name"], [data["tag"].lower()])
         return field, self.parse_variable_idea_value(data[name])
 
     def parse_development(self, data):
@@ -262,17 +262,17 @@ class EU4_Main:
             self.add_parse(self.parse_variable_idea("ambition", data), embed)
             
             # Check to see if each of the seven ideas starts with the same thing and remove
-            prefix = embed["fields"][1].split(" ")[2]
-            remove = True
-            for i in range(2, 8):
-                if embed["fields"][i].split(" ")[2] != prefix:
-                    remove = False
-                    break
-            if remove:
-                for i in range(1, 8):
-                    temp = embed["fields"][i].split(" ")
-                    temp.pop(2)
-                    embed["fields"][i] = " ".join(temp)
+            # prefix = embed["fields"][1].split(" ")[2]
+            # remove = True
+            # for i in range(2, 8):
+            #     if embed["fields"][i].split(" ")[2] != prefix:
+            #         remove = False
+            #         break
+            # if remove and prefix not in ["west"]:
+            #     for i in range(1, 8):
+            #         temp = embed["fields"][i].split(" ")
+            #         temp.pop(2)
+            #         embed["fields"][i] = " ".join(temp)
 
         else:
             self.add_parse(("Error", "No ideas found for this tag!"), embed)

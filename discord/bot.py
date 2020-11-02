@@ -5,20 +5,27 @@ from dotenv import load_dotenv
 from discord.ext import commands
 from cogs.eu4 import EU4Cog
 
+prefix_dict = dict()
+def get_prefix(bot, message):
+    prefixes = ["!"]
+
+    if not message.guild:
+        return "!"
+    if message.guild.id in prefix_dict:
+        prefixes = prefix_dict[message.guild.id]
+
+    return commands.when_mentioned_or(*prefixes)(bot, message)
+
 class CobaltBot(commands.Bot):
     def __init__(self, prefix="!"):
-        super().__init__(command_prefix=prefix)
+        super().__init__(command_prefix=get_prefix)
         load_dotenv()
         self.token = os.getenv('DISCORD_TOKEN')
         self.serv = os.getenv('DISCORD_SERVER')
-        self.default_prefix = prefix
         # Prefixes should be different for different servers.
         self.prefixes = dict()
         # Certain cogs should be admitted for different servers.
         self.cog_dict = dict()
-
-    async def on_ready(self):
-        print(f'{self.user} has connected to Discord!')
 
     async def on_ready(self):
         server = discord.utils.get(self.guilds, name=self.serv)
@@ -27,19 +34,6 @@ class CobaltBot(commands.Bot):
             f'{self.user} is connected to the following server:\n'
             f'{server.name}(id: {server.id})'
         )
-
-    async def on_member_join(self, member):
-        await member.create_dm()
-        await member.dm_channel.send(
-            f'Hi {member.name}, welcome to my Discord server!'
-        )
-
-    async def determine_prefix(self, message):
-        guild = message.guild
-        if guild:
-            return self.prefixes[guild]
-        else:
-            return self.default_prefix
 
     async def on_error(self, event, *args, **kwargs):
         with open('err.log', 'a') as f:
@@ -54,21 +48,65 @@ class CobaltBot(commands.Bot):
         # Help message sent as response to message in server in the person's DMs
         pass
 
+    async def guild_check(self, ctx):
+        if not ctx.guild:
+            await ctx.send("Error: Prefixes cannot be changed in DMs, only servers.")
+        return ctx.guild
+
     @commands.command(name="get_prefix", aliases=["prefix", "pre"])
-    async def get_prefixes(self, ctx, name):
-        pass
+    async def get_prefix(self, ctx, name):
+        if await self.guild_check(ctx):
+            guild = ctx.guild.id
+            if guild in prefix_dict:
+                prefixes = prefix_dict[guild]
+                await ctx.send("This server has the following custom prefixes: " + " ".join(prefixes))
+            else:
+                await ctx.send("This server is using the default prefix: !")
+
+    @commands.command(name="add_prefix")
+    async def add_prefix(self, ctx, name, prefix: str):
+        if await self.guild_check:
+            guild = ctx.guild.id
+            prefix_dict[guild] = prefix
+            await ctx.send("This server's prefix has been set to this prefix: " + prefix)
 
     @commands.command(name="set_prefix")
-    async def set_prefixes(self, ctx, name):
+    async def set_prefix(self, ctx, name, prefix: str):
+        if await self.guild_check:
+            guild = ctx.guild.id
+            prefix_dict[guild] = prefix
+            await ctx.send("This server's prefix has been set to this prefix: " + prefix)
+
+    @commands.command(name="reset_prefix")
+    async def reset_prefix(self, ctx, name):
+        if await self.guild_check:
+            guild = ctx.guild.id
+            if guild in prefix_dict:
+                prefix_dict.pop(guild)
+                await ctx.send("This server's prefix has been set to the default prefix: !")
+            else:
+                await ctx.send("This server is already set to the default prefix: !")
+        
+    @commands.command(name="remove_prefix")
+    async def remove_prefix(self, ctx, name, prefix: str):
+        if await self.guild_check:
+            guild = ctx.guild.id
+            if guild in prefix_dict:
+                if prefix in prefix_dict[guild]:
+                    prefix_dict[guild].remove(prefix)
+                    await ctx.send("This following prefix has been removed from this server: " + prefix)
+                else:
+                    await ctx.send("The following prefix is not set for this server: " + prefix)
+            else:
+                await ctx.send("This server is currently set to the default prefix: !")
+
+    @commands.command(name="cog_add", pass_context=True)
+    async def cog_add(self, ctx, name):
         pass
 
-    @commands.command(name="add", pass_context=True)
-    async def add(self, ctx, name):
-        self.add_cog(name)
-
-    @commands.command(name="remove", pass_context=True)
-    async def remove(self, ctx, name):
-        self.remove_cog(name)
+    @commands.command(name="cog_remove", pass_context=True)
+    async def cog_remove(self, ctx, name):
+        pass
 
     def run(self):
         super().run(self.token)

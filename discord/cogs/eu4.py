@@ -39,7 +39,7 @@ class EU4Cog(CobaltCog):
 
     # @valid_cog_check
     @commands.command(name="eu4", description="", aliases=[], usage="")
-    async def fetch_idea(self, ctx, string: str, full_data: str):
+    async def fetch_idea(self, ctx, string: str, full_data: str=""):
         string = await self.nearest_spelling(ctx, string)
         if string is not None:
             if full_data in ["all", "full", "complete"]:

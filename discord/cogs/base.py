@@ -2,15 +2,9 @@ import os
 import discord
 from discord.ext import commands
 
-async def valid_cog_check(ctx, msg="Error: This server is not configured to use this command."):
-    # Function that checks if the cog is usable in this server
-    valid = args[0].name in args[0].bot.cog_dict[ctx.message.guild.id]
-    if not valid:
-        await ctx.send(msg)
-    return valid
-
 class CobaltCog(commands.Cog):
     def __init__(self):
+        super().__init__()
         pass
     
     async def make_embed(self, data, inline=True):

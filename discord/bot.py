@@ -9,7 +9,7 @@ from cogs.prefix import PrefixCog, fetch_prefix
 class CobaltBot(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix=fetch_prefix)
-        p = PrefixCog()
+        p = PrefixCog("prefixes.json")
         self.add_cog(p)
         load_dotenv()
         self.token = os.getenv('DISCORD_TOKEN')

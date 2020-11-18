@@ -45,11 +45,21 @@ class CobaltBot(commands.Bot):
 
     @commands.command(name="cog_add", pass_context=True)
     async def cog_add(self, ctx, cog: str):
-        pass
+        if cog not in self.cogs:
+            await ctx.send("Invalid cog name!")
+        else:
+            self.cogs[cog].add_server(ctx.guild.id)
+            await ctx.send("Cog added!")
+            await save_cogs()
 
     @commands.command(name="cog_remove", pass_context=True)
     async def cog_remove(self, ctx, cog: str):
-        pass
+        if cog not in self.cogs:
+            await ctx.send("Invalid cog name!")
+        else:
+            self.cogs[cog].remove_server(ctx.guild.id)
+            await ctx.send("Cog removed!")
+            await save_cogs()
 
     async def save_cogs(self):
         cog_servers = dict()

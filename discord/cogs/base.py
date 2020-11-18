@@ -5,7 +5,7 @@ from discord.ext import commands
 class CobaltCog(commands.Cog):
     def __init__(self):
         super().__init__()
-        pass
+        self.servers = set()
     
     async def make_embed(self, data, inline=True):
         image = None
@@ -18,3 +18,12 @@ class CobaltCog(commands.Cog):
             image = discord.File(data["image_path"], filename = img_name)
             embed.set_thumbnail(url="attachment://" + img_name)
         return image, embed
+
+    async def add_server(server_id):
+        self.servers.add(server_id)
+
+    async def remove_server(server_id):
+        self.servers.remove(server_id)
+
+    def valid_command(ctx):
+        return ctx.guild.id in self.servers

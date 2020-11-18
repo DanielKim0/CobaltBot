@@ -76,7 +76,6 @@ class PrefixCog(CobaltCog):
                 await save_prefix(self.data, prefix_dict)
             else:
                 await ctx.send("This server is already set to the default prefix: !")
-            
 
     @commands.command(name="remove_prefix")
     async def remove_prefix(self, ctx, prefix: str):

@@ -5,7 +5,7 @@ from discord.ext import commands
 class CobaltCog(commands.Cog):
     def __init__(self):
         super().__init__()
-        self.servers = set()
+        self.added_servers = set()
     
     async def make_embed(self, data, inline=True):
         image = None
@@ -19,11 +19,23 @@ class CobaltCog(commands.Cog):
             embed.set_thumbnail(url="attachment://" + img_name)
         return image, embed
 
-    async def add_server(server_id):
-        self.servers.add(server_id)
+    async def add_server(self, ctx):
+        server_id = ctx.guild.id
+        if server_id in self.added_servers:
+            await ctx.send("Cog already added!")
+        else:
+            self.added_servers.add(server_id)
+            await ctx.send("Cog added!")
 
-    async def remove_server(server_id):
-        self.servers.remove(server_id)
+    async def remove_server(self, ctx):
+        server_id = ctx.guild.id
+        if server_id not in self.added_servers:
+            await ctx.send("Cog already not enabled!")
+        else:
+            self.added_servers.remove(server_id)
+            await ctx.send("Cog removed!")
 
-    def valid_command(ctx):
-        return ctx.guild.id in self.servers
+    def server_check(ctx):
+        print(self.added_servers)
+        print("checking servers")
+        return ctx.guild.id in self.added_servers

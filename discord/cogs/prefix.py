@@ -4,7 +4,6 @@ import json
 import aiofiles
 from dotenv import load_dotenv
 from discord.ext import commands
-from cogs.base import CobaltCog
 
 prefix_dict = dict()
 def fetch_prefix(bot, message):
@@ -25,7 +24,7 @@ async def save_prefix(path, data):
     async with aiofiles.open(path, "w") as f:
         await f.write(json.dumps(data, indent=4))
 
-class PrefixCog(CobaltCog):
+class PrefixCog(commands.Cog):
     def __init__(self, data):
         super().__init__()
         self.data = data
@@ -85,7 +84,7 @@ class PrefixCog(CobaltCog):
                 if prefix in prefix_dict[guild]:
                     prefix_dict[guild].remove(prefix)
                     await ctx.send("This following prefix has been removed from this server: " + prefix)
-                    if prefix_dict[guild] == []:
+                    if prefix_dict[guild] in [[], ["!"]]:
                         prefix_dict.pop(guild)
                         await ctx.send("This server is currently set to the default prefix: !")
                     await save_prefix(self.data, prefix_dict)

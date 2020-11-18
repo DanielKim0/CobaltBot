@@ -1,25 +1,32 @@
 import os
 import random
 import discord
+import json
 from dotenv import load_dotenv
 from discord.ext import commands
-from cogs.eu4 import EU4Cog
 from cogs.prefix import PrefixCog, fetch_prefix
+from cogs.basic import BasicCog
+from cogs.eu4 import EU4Cog
 
 class CobaltBot(commands.Bot):
-    def __init__(self, cog_data, eu4_data):
+    def __init__(self, cog_data, prefix_data, eu4_data):
         super().__init__(command_prefix=fetch_prefix)
-        self.cog_data = cog_data
-        self.add_cog(PrefixCog("prefixes.json")) # not included in cogs, valid for all servers
-        self.cogs = {
+        self.basic = BasicCog(cog_data)
+        self.add_cog(PrefixCog(prefix_data)) # not included in cogs, valid for all servers
+        self.basic.cog_dict = {
             "eu4": EU4Cog(eu4_data[0], eu4_data[1], eu4_data[2], eu4_data[3])
         }
-        for cog in self.cogs:
-            self.add_cog(self.cogs[cog])
+
+        self.add_cog(self.basic)
         self.load_cogs()
+        for cog in self.basic.cog_dict:
+            self.add_cog(self.basic.cog_dict[cog])
         
         load_dotenv()
         self.token = os.getenv('DISCORD_TOKEN')
+
+    def load_cogs(self):
+        self.basic.load_cogs()
 
     async def on_ready(self):
         serv = os.getenv('DISCORD_SERVER')
@@ -37,43 +44,6 @@ class CobaltBot(commands.Bot):
             else:
                 raise
 
-    # TODO below
-    @commands.command(name="help")
-    async def help(self, pass_context=True):
-        # Help message sent as response to message in server in the person's DMs
-        pass
-
-    @commands.command(name="cog_add", pass_context=True)
-    async def cog_add(self, ctx, cog: str):
-        if cog not in self.cogs:
-            await ctx.send("Invalid cog name!")
-        else:
-            self.cogs[cog].add_server(ctx.guild.id)
-            await ctx.send("Cog added!")
-            await save_cogs()
-
-    @commands.command(name="cog_remove", pass_context=True)
-    async def cog_remove(self, ctx, cog: str):
-        if cog not in self.cogs:
-            await ctx.send("Invalid cog name!")
-        else:
-            self.cogs[cog].remove_server(ctx.guild.id)
-            await ctx.send("Cog removed!")
-            await save_cogs()
-
-    async def save_cogs(self):
-        cog_servers = dict()
-        async with aiofiles.open(self.cog_data) as f:
-            for cog in self.cogs:
-                cog_servers[cog] = list(self.cogs[cog].servers)
-            await f.write(json.dumps(data, indent=4))
-
-    def load_cogs(self):
-        with open(path, "r") as f:
-            data = json.load(f)
-        for cog in data:
-            self.cogs[cog].servers = data[cog]
-
     def run(self):
         super().run(self.token)
 
@@ -82,6 +52,7 @@ if __name__ == "__main__":
     full_data = "/home/daniel/Documents/discord/processing/eu4/results/full"
     impor_data = "/home/daniel/Documents/discord/processing/eu4/results/important"
     idea_data = "/home/daniel/Documents/discord/processing/eu4/results/ideas"
-    cog_data = "/home/daniel/Documents/discord/bot_data/prefixes.json"
-    bot = CobaltBot(cog_data, [identifiers, full_data, impor_data, idea_data])
+    cog_data = "/home/daniel/Documents/discord/bot_data/cogs.json"
+    prefix_data = "/home/daniel/Documents/discord/bot_data/prefixes.json"
+    bot = CobaltBot(cog_data, prefix_data, [identifiers, full_data, impor_data, idea_data])
     bot.run()

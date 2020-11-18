@@ -38,7 +38,7 @@ class EU4Cog(CobaltCog):
         return image, embed
 
     @commands.command(name="eu4", description="", aliases=[], usage="")
-    @commands.check(valid_command)
+    @commands.check(CobaltCog.server_check)
     async def fetch_idea(self, ctx, string: str, full_data: str=""):
         string = await self.nearest_spelling(ctx, string)
         if string is not None:

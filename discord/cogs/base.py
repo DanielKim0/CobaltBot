@@ -2,6 +2,14 @@ import os
 import discord
 from discord.ext import commands
 
+def check_valid_command(func):
+    print("checking")
+    def wrapper(*args):
+        obj = args[0]
+        ctx = args[1]
+        return ctx.guild.id in obj.added_servers
+    return commands.check(wrapper)
+
 class CobaltCog(commands.Cog):
     def __init__(self):
         super().__init__()
@@ -34,8 +42,3 @@ class CobaltCog(commands.Cog):
         else:
             self.added_servers.remove(server_id)
             await ctx.send("Cog removed!")
-
-    def server_check(ctx):
-        print(self.added_servers)
-        print("checking servers")
-        return ctx.guild.id in self.added_servers

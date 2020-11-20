@@ -10,15 +10,10 @@ class BasicCog(commands.Cog):
         self.cog_data = cog_data
         self.cog_dict = dict()
 
+    # test command, delete later
     @commands.command(name="ayaya", description="", aliases=[], usage="")
     async def ayaya(self, ctx):
         await ctx.send("ayaya")
-
-    # # TODO below
-    # @commands.command(name="help", description="", aliases=[], usage="")
-    # async def help(self, pass_context=True):
-    #     # Help message sent as response to message in server in the person's DMs
-    #     pass
 
     @commands.command(name="add_cog", description="", aliases=[], usage="")
     async def add_cog(self, ctx, cog: str):

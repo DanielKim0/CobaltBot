@@ -16,19 +16,11 @@ def fetch_prefix(bot, message):
 
     return commands.when_mentioned_or(*prefixes)(bot, message)
 
-def load_prefix(path):
-    with open(path, "r") as f:
-        return json.load(f)
-
-async def save_prefix(path, data):
-    async with aiofiles.open(path, "w") as f:
-        await f.write(json.dumps(data, indent=4))
-
 class PrefixCog(commands.Cog):
     def __init__(self, data):
         super().__init__()
         self.data = data
-        prefix_dict = load_prefix(data)
+        prefix_dict = self.load_prefix(data)
 
     async def guild_check(self, ctx):
         if not ctx.guild:
@@ -55,7 +47,7 @@ class PrefixCog(commands.Cog):
             else:
                 prefix_dict[guild].append(prefix)
                 await ctx.send("This server now works with the additional prefix: " + prefix)
-            await save_prefix(self.data, prefix_dict)
+            await self.save_prefix(self.data, prefix_dict)
 
     @commands.command(name="set_prefix")
     async def set_prefix(self, ctx, prefix: str):
@@ -63,7 +55,7 @@ class PrefixCog(commands.Cog):
             guild = ctx.guild.id
             prefix_dict[guild] = [prefix]
             await ctx.send("This server's prefix has been set to this prefix: " + prefix)
-            await save_prefix(self.data, prefix_dict)
+            await self.save_prefix(self.data, prefix_dict)
 
     @commands.command(name="reset_prefix")
     async def reset_prefix(self, ctx):
@@ -72,7 +64,7 @@ class PrefixCog(commands.Cog):
             if guild in prefix_dict:
                 prefix_dict.pop(guild)
                 await ctx.send("This server's prefix has been set to the default prefix: !")
-                await save_prefix(self.data, prefix_dict)
+                await self.save_prefix(self.data, prefix_dict)
             else:
                 await ctx.send("This server is already set to the default prefix: !")
 
@@ -87,8 +79,16 @@ class PrefixCog(commands.Cog):
                     if prefix_dict[guild] in [[], ["!"]]:
                         prefix_dict.pop(guild)
                         await ctx.send("This server is currently set to the default prefix: !")
-                    await save_prefix(self.data, prefix_dict)
+                    await self.save_prefix(self.data, prefix_dict)
                 else:
                     await ctx.send("The following prefix is not set for this server: " + prefix)
             else:
                 await ctx.send("This server is currently set to the default prefix: !")
+
+    def load_prefix(self, path):
+        with open(path, "r") as f:
+            return json.load(f)
+
+    async def save_prefix(self, path, data):
+        async with aiofiles.open(path, "w") as f:
+            await f.write(json.dumps(data, indent=4))

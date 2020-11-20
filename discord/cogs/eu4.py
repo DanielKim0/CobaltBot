@@ -3,7 +3,7 @@ import random
 import discord
 from dotenv import load_dotenv
 from discord.ext import commands
-from cogs.base import CobaltCog
+from cogs.base import CobaltCog, check_valid_command
 import json
 import difflib
 
@@ -37,8 +37,8 @@ class EU4Cog(CobaltCog):
         image, embed = await self.make_embed(data, inline)
         return image, embed
 
+    @check_valid_command
     @commands.command(name="eu4", description="", aliases=[], usage="")
-    @commands.check(CobaltCog.server_check)
     async def fetch_idea(self, ctx, string: str, full_data: str=""):
         string = await self.nearest_spelling(ctx, string)
         if string is not None:

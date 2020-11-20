@@ -11,8 +11,9 @@ from cogs.eu4 import EU4Cog
 class CobaltBot(commands.Bot):
     def __init__(self, cog_data, prefix_data, eu4_data):
         super().__init__(command_prefix=fetch_prefix)
+        self.prefix = PrefixCog(prefix_data)
         self.basic = BasicCog(cog_data)
-        self.add_cog(PrefixCog(prefix_data)) # not included in cogs, valid for all servers
+        self.add_cog(self.prefix) # not included in cogs, valid for all servers
         self.basic.cog_dict = {
             "eu4": EU4Cog(eu4_data[0], eu4_data[1], eu4_data[2], eu4_data[3])
         }

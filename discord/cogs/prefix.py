@@ -37,6 +37,7 @@ class PrefixCog(commands.Cog):
                 await ctx.send("This server is using the default prefix: !")
 
     @commands.command(name="add_prefix")
+    @commands.has_permissions(administrator=True)
     async def add_prefix(self, ctx, prefix: str):
         if await self.guild_check(ctx):
             guild = ctx.guild.id
@@ -49,6 +50,7 @@ class PrefixCog(commands.Cog):
             await self.save_prefix(self.data)
 
     @commands.command(name="set_prefix")
+    @commands.has_permissions(administrator=True)
     async def set_prefix(self, ctx, prefix: str):
         if await self.guild_check(ctx):
             guild = ctx.guild.id
@@ -57,12 +59,11 @@ class PrefixCog(commands.Cog):
             await self.save_prefix(self.data)
 
     @commands.command(name="reset_prefix")
+    @commands.has_permissions(administrator=True)
     async def reset_prefix(self, ctx):
         if await self.guild_check(ctx):
-            print("guild checked")
             guild = ctx.guild.id
             if guild in self.prefix_dict:
-                print("popping")
                 self.prefix_dict.pop(guild)
                 await ctx.send("This server's prefix has been set to the default prefix: !")
                 await self.save_prefix(self.data)
@@ -70,6 +71,7 @@ class PrefixCog(commands.Cog):
                 await ctx.send("This server is already set to the default prefix: !")
 
     @commands.command(name="remove_prefix")
+    @commands.has_permissions(administrator=True)
     async def remove_prefix(self, ctx, prefix: str):
         if await self.guild_check(ctx):
             guild = ctx.guild.id

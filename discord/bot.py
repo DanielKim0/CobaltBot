@@ -18,15 +18,12 @@ class CobaltBot(commands.Bot):
         }
 
         self.add_cog(self.basic)
-        self.load_cogs()
+        self.basic.load_cogs()
         for cog in self.basic.cog_dict:
             self.add_cog(self.basic.cog_dict[cog])
         
         load_dotenv()
         self.token = os.getenv('DISCORD_TOKEN')
-
-    def load_cogs(self):
-        self.basic.load_cogs()
 
     async def on_ready(self):
         serv = os.getenv('DISCORD_SERVER')

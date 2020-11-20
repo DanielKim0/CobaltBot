@@ -1,15 +1,19 @@
 import os
 import discord
 from discord.ext import commands
+import functools
 
 def check_valid_command(func):
-    print("checking")
-    def wrapper(*args):
+    @functools.wraps(func)
+    async def wrapper(*args):
         obj = args[0]
         ctx = args[1]
-        return ctx.guild.id in obj.added_servers
-    return commands.check(wrapper)
-
+        if ctx.guild.id in obj.added_servers:
+            return await func(*args)
+        else:
+            return None
+    return wrapper
+ 
 class CobaltCog(commands.Cog):
     def __init__(self):
         super().__init__()

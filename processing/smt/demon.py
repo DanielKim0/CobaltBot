@@ -43,7 +43,7 @@ class SMT_Demon_Parser:
     def get_demon_fissions(self, link):
         data = []
         res = self.render_html(link)
-        trs = res.html.find("app-smt-fissions")[0].find("tbody")[-1].find("tr")
+        trs = res.html.find("app-smt-fission-table")[0].find("tbody")[-1].find("tr")
         for tr in trs:
             data.append([item.text for item in tr.find("td")])
         
@@ -53,10 +53,10 @@ class SMT_Demon_Parser:
         
         fissions = defaultdict(list)
         for item in data:
-            demon1 = data[3]
-            demon2 = data[6]
-            fusions[demon1].append(demon2)
-            fusions[demon2].append(demon1)
+            demon1 = item[3]
+            demon2 = item[6]
+            fissions[demon1].append(demon2)
+            fissions[demon2].append(demon1)
         return [fissions, special]
 
     def get_demon_fusions(self, link):
@@ -64,19 +64,22 @@ class SMT_Demon_Parser:
         res = self.render_html(link)
         trs = res.html.find("app-smt-fusions")[0].find("tbody")[-1].find("tr")
         for tr in trs:
-            data.append([item.text for item in tr.find("td")])\
+            data.append([item.text for item in tr.find("td")])
 
         fusions = dict()
         for item in data:
-            demon1 = data[3]
-            demon2 = data[6]
-            fusions[demon1] = demon2)
+            demon1 = item[3]
+            demon2 = item[6]
+            fusions[demon1] = demon2
         return fusions
 
     def main(self):
         links = self.parse_demon_list()
         # stats = self.get_demon_stats(links[0])
-        self.get_demon_fusions(links[0] + "/fissions")
+        fissions, special = self.get_demon_fissions(links[1] + "/fissions")
+        fusions = self.get_demon_fusions(links[1] + "/fusions")
+        print(fissions)
+        print(fusions)
 
 if __name__ == "__main__":
     p = SMT_Demon_Parser("smt4", "results")

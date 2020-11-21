@@ -10,8 +10,8 @@ class SMT_Demon_Parser:
         self.game = game
         self.session = HTMLSession()
         self.results = results
-        if not os.path.exists(self.results):
-            os.mkdir(self.results)
+        create_folder(self.results)
+        create_folder(os.path.join(self.results, "demons"))
 
     def render_html(self, link):
         res = self.session.get(link)
@@ -27,17 +27,17 @@ class SMT_Demon_Parser:
         demon_list = self.url + "?csr=/" + self.game + "/demons"
         res = self.render_html(demon_list)
         found = res.html.find("tr.app-smt-demon-list-row")
-        return [self.url + self.game + "/demons/" + item.find("td")[2].text for item in found]
+        return [[item.find("td")[2].text, self.url + self.game + "/demons/" + item.find("td")[2].text] for item in found]
 
     def get_demon_stats(self, link):
         res = self.render_html(link)
-        base = self.extract_table_text(res, "app-demon-stats")
-        resistances = self.extract_table_text(res, "app-demon-resists")
+        stats = self.extract_table_text(res, "app-demon-stats")
+        resists = self.extract_table_text(res, "app-demon-resists")
         skills = self.extract_table_text(res, "app-demon-skills")
         skills[1] = split_list(skills[1], len(skills[0]))
-        results = [base, resistances, skills]
+        results = {"stats": stats, "resist": resists, "skills": skills}
         if self.game in ["smt4f"]:
-            results.append(self.extract_table_text(res, "app-demon-inherits"))
+            results["affinities"] = self.extract_table_text(res, "app-demon-inherits")
         return results
 
     def get_demon_fissions(self, link):
@@ -75,11 +75,20 @@ class SMT_Demon_Parser:
 
     def main(self):
         links = self.parse_demon_list()
-        # stats = self.get_demon_stats(links[0])
-        fissions, special = self.get_demon_fissions(links[1] + "/fissions")
-        fusions = self.get_demon_fusions(links[1] + "/fusions")
-        print(fissions)
-        print(fusions)
+        names = []
+        for link in links:
+            name, link = link
+            names.append(name)
+            stats = self.get_demon_stats(link)
+            fissions, special = self.get_demon_fissions(link + "/fissions")
+            fusions = self.get_demon_fusions(link + "/fusions")
+            stats["special"] = special
+            stats["fissions"] = fissions
+            stats["fusions"] = fusions
+            with open(os.path.join(self.results, "demons", name + ".json"), "w") as f:
+                f.write(json.dumps(stats))
+        with open(os.path.join(self.results, "demon_names.json"), "w") as f:
+            f.write(json.dumps(names))
 
 if __name__ == "__main__":
     p = SMT_Demon_Parser("smt4", "results")

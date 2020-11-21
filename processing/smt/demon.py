@@ -60,7 +60,18 @@ class SMT_Demon_Parser:
         return [fissions, special]
 
     def get_demon_fusions(self, link):
-        pass
+        data = []
+        res = self.render_html(link)
+        trs = res.html.find("app-smt-fusions")[0].find("tbody")[-1].find("tr")
+        for tr in trs:
+            data.append([item.text for item in tr.find("td")])\
+
+        fusions = dict()
+        for item in data:
+            demon1 = data[3]
+            demon2 = data[6]
+            fusions[demon1] = demon2)
+        return fusions
 
     def main(self):
         links = self.parse_demon_list()

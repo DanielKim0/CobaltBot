@@ -2,6 +2,7 @@ from requests_html import HTMLSession
 import json
 import os
 from utils import *
+from collections import defaultdict
 
 class SMT_Demon_Parser:
     def __init__(self, game, results):
@@ -39,15 +40,29 @@ class SMT_Demon_Parser:
             results.append(self.extract_table_text(res, "app-demon-inherits"))
         return results
 
-    def get_demon_fusions(self):
-        pass
-
-    def get_demon_fissions(self):
-        pass
+    def get_demon_fusions(self, link):
+        data = []
+        res = self.render_html(link)
+        trs = res.html.find("app-smt-fusions")[0].find("tbody")[-1].find("tr")
+        for tr in trs:
+            data.append([item.text for item in tr.find("td")])
+        
+        special = len(data[0]) == 4
+        if special:
+            return [[data[0] for i in data], special]
+        
+        fusions = defaultdict(list)
+        for item in data:
+            demon1 = data[3]
+            demon2 = data[6]
+            fusions[demon1].append(demon2)
+            fusions[demon2].append(demon1)
+        return [fusions, special]
 
     def main(self):
         links = self.parse_demon_list()
-        stats = self.get_demon_stats(links[0])
+        # stats = self.get_demon_stats(links[0])
+        self.get_demon_fusions(links[0] + "/fissions")
 
 if __name__ == "__main__":
     p = SMT_Demon_Parser("smt4", "results")

@@ -60,10 +60,18 @@ class EU4_Main:
         # Hard-code nicknames or common names here
         data["rome"] = "ROM"
         data["timmy"] = "TIM"
+        data["timmies"] = "TIM"
         data["hre"] = "HRE"
+        data["isles"] = "LOI"
+        data["the isles"] = "LOI"
+        data["sardinia-piedmont"] = "SPI"
+        data["poland-lithuania"] = "PLC"
+        data["yokotan"] = "YOK"
+
         data.pop("teutonics")
+        add_plural("otto", "TUR", data)
         add_plural("teuton", "TEU", data)
-        add_plural("habsburgs", "HAB", data)
+        add_plural("habsburg", "HAB", data)
         return data
 
     def fetch_idea_names(self, data):

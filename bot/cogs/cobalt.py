@@ -2,6 +2,8 @@ import os
 import discord
 from discord.ext import commands
 import functools
+import json
+import difflib
 
 def check_valid_command(func):
     @functools.wraps(func)
@@ -46,3 +48,23 @@ class CobaltCog(commands.Cog):
         else:
             self.added_servers.remove(server_id)
             await ctx.send("Cog removed!")
+
+    async def nearest_spelling(self, ctx, string, names):
+        string = string.lower()
+        if string in names:
+            return string
+        else:
+            matches = difflib.get_close_matches(string, names)
+            message = "Sorry, I couldn't find any matches.\nDid you mean "
+            for item in matches[:-1]:
+                message += item + " or "
+            message += matches[-1] + "?"
+            await ctx.send(message)
+            return None
+
+    async def fetch_embed(self, string, path, inline=True):
+        filename = os.path.join(path, string + ".json")
+        with open(filename, "r") as f:
+            data = json.load(f)
+        image, embed = await self.make_embed(data, inline)
+        return image, embed

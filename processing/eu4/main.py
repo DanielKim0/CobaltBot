@@ -8,7 +8,7 @@ from diplomacy import EU4_Parser_Diplomacy
 from idea import EU4_Parser_Idea
 from culture import EU4_Parser_Culture
 from religion import EU4_Parser_Religion
-from map import EU4_Parser_Map
+from maps import EU4_Parser_Map
 from copy import copy
 from flag import EU4_Flag_Converter
 
@@ -41,31 +41,56 @@ class EU4_Main:
         self.flags = flag.process_flags("../../raw_data/eu4/flags", os.path.join(self.results, "images"))
         self.country_names = {tag: self.country_data[tag]["country"] for tag in self.country_data}
 
+    def fetch_country_names(self, data):
+        for tag in self.country_data:
+            data[tag.lower()] = tag
+            country = self.country_data[tag]["country"].lower()
+            data[country] = tag
+            country = country.split()
+
+            for word in ["empire", "khaganate", "khanate", "horde"]:
+                if word in country[0] and country[0] not in ["ilkhanate"]:
+                    ind = country[0].index(word)
+                    country = [country[0][:ind].strip(), word]
+
+            if len(country) > 1:
+                if country[0] == "the":
+                    data[country[1]] = tag
+                if country[1] in ["empire", "khaganate", "khanate", "horde"]:
+                    if country[0] not in ["golden", "great"]:
+                        add_plural(country[0], tag, data)
+                if country[1] == "of":
+                    data[country[2]] = tag
+
+        # Hard-code nicknames or common names here
+        data["rome"] = "ROM"
+        data["timmy"] = "TIM"
+        data["mongolia"] = "KHA"
+        add_plural("habsburgs", "HAB", data)
+        return data
+
+    def fetch_idea_names(self, data):
+        for idea in self.basic_ideas:
+            data[idea.split("_")[0]] = idea
+            data[idea.replace("_", " ")] = idea
+            data[idea] = idea
+        
+        # Nicknames for ideas
+        nicknames = ["espionage", "admin", "innovative", "plutocratic", "diplo", 
+                    "econ", "expo", "expa", "aristocratic", "qual", "quant"]
+        fullnames = ["spy", "administrative", "innovativeness", "plutocracy", "diplomatic", 
+                    "economic", "exploration", "expansion", "aristocracy", "quality", "quantity"]
+
+        for i in range(len(nicknames)):
+            data[nicknames[i]] = data[fullnames[i] + "_ideas"]
+            data[nicknames[i] + " ideas"] = data[fullnames[i] + "_ideas"]
+        return data
+
     def write_names(self, output):
         with open(os.path.join(self.results, output), "w") as f:
             data = dict()
-            for tag in self.country_data:
-                data[tag.lower()] = tag
-                data[self.country_data[tag]["country"].lower()] = tag
-            for idea in self.basic_ideas:
-                data[idea.split("_")[0]] = idea
-                data[idea.replace("_", " ")] = idea
-                data[idea] = idea
-
-            # Add nicknames or common names here
-            data["rome"] = "ROM"
-            data["mongols"] = "MON"
-            data["chin"] = "HAB"
-
-            # Nicknames for ideas
-            nicknames = ["espionage", "admin", "innovative", "plutocratic", "diplo", 
-                        "econ", "expo", "expa", "aristocratic", "qual", "quant"]
-            fullnames = ["spy", "administrative", "innovativeness", "plutocracy", "diplomatic", 
-                        "economic", "exploration", "expansion", "aristocracy", "quality", "quantity"]
-            for i in range(len(nicknames)):
-                data[nicknames[i]] = data[fullnames[i] + "_ideas"]
-                data[nicknames[i] + " ideas"] = data[fullnames[i] + "_ideas"]
-
+            data = self.fetch_country_names(data)
+            data = self.fetch_idea_names(data)
             json.dump(data, f, ensure_ascii=False, indent=4)
 
     def process_data(self):

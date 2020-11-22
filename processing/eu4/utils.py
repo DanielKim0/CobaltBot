@@ -21,4 +21,8 @@ def create_folder(path):
 def calculate_age(birth_date):
     return str(relativedelta(START_DATE, convert_to_date(birth_date)).years)
 
+def add_plural(key, value, data):
+    data[key] = value
+    data[key + "s"] = value
+
 START_DATE = convert_to_date("1444.11.11")

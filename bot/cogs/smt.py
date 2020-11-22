@@ -45,3 +45,35 @@ class SMTCog(CobaltCog):
             table, skills = await self.stat_table(data)
             await ctx.send(table)
             await ctx.send(skills)
+
+    @commands.command(name="fusion", description="", aliases=[], usage="")
+    @check_valid_command
+    async def get_fusion(self, ctx, demon1: str, demon2: str):
+        # Given 1 and 2, get X where 1 ! 2 = X
+        demon1 = await self.get_demon(ctx, demon1)
+        demon2 = await self.get_demon(ctx, demon2)
+        if demon1 is not None and demon2 is not None:
+            async with aiofiles.open(os.path.join(self.fusions, demon1 + ".json"), "r") as f:
+                data = await f.read()
+            data = json.loads(data)
+            if demon2 in data:
+                msg = demon1 + " + " demon2 " -> " data[demon2]
+            else:
+                msg = "Invalid fusion!"
+            await ctx.send(msg)
+
+    @commands.command(name="fission", description="", aliases=[], usage="")
+    @check_valid_command
+    async def get_fission(self, ctx, demon1: str, demon2: str):
+        # Given 1 and 2, get all X where 1 ! X = 2
+        demon1 = await self.get_demon(ctx, demon1)
+        demon2 = await self.get_demon(ctx, demon2)
+        if demon1 is not None and demon2 is not None:
+            async with aiofiles.open(os.path.join(self.fusions, demon2 + ".json"), "r") as f:
+                data = await f.read()
+            data = json.loads(data)
+            if demon1 in data:
+                msg = demon1 + " + " str(data[demon1]) " -> " demon2
+            else:
+                msg = "Invalid fusion!"
+            await ctx.send(msg)

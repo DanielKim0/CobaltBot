@@ -13,9 +13,12 @@ class SMT_Demon_Parser:
         create_folder(self.results)
         create_folder(os.path.join(self.results, "demons"))
 
-    def render_html(self, link):
+    def render_html(self, link, script=None):
         res = self.session.get(link)
-        res.html.render()
+        if script:
+            res.html.render(script=script)
+        else:
+            res.html.render()
         return res
 
     def extract_table_text(self, res, cla):
@@ -42,7 +45,17 @@ class SMT_Demon_Parser:
 
     def get_demon_fissions(self, link):
         data = []
-        res = self.render_html(link)
+        script = """
+            () => {
+                var navs = document.getElementsByClassName("nav");
+                var elem = navs[navs.length-1];
+                if (elem.hasAttribute("colspan") && elem.getAttribute("colspan") == 7) {
+                    elem.click();
+                }
+            }
+        """
+        res = self.render_html(link, script=script)
+
         trs = res.html.find("app-smt-fission-table")[0].find("tbody")[-1].find("tr")
         for tr in trs:
             data.append([item.text for item in tr.find("td")])

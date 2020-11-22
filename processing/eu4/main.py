@@ -39,7 +39,7 @@ class EU4_Main:
         self.regions = maps.parse_file("../../raw_data/eu4/map/region.txt")
         self.continents = maps.parse_file("../../raw_data/eu4/map/continent.txt")
         self.flags = flag.process_flags("../../raw_data/eu4/flags", os.path.join(self.results, "images"))
-        self.country_names = {tag: self.country_data[tag]["country"] for tag in self.country_data}
+        self.country_names = dict()
 
     def fetch_country_names(self, data):
         for tag in self.country_data:
@@ -48,15 +48,10 @@ class EU4_Main:
             data[country] = tag
             country = country.split()
 
-            for word in ["empire", "khaganate", "khanate", "horde"]:
-                if word in country[0] and country[0] not in ["ilkhanate"]:
-                    ind = country[0].index(word)
-                    country = [country[0][:ind].strip(), word]
-
             if len(country) > 1:
                 if country[0] == "the":
                     data[country[1]] = tag
-                if country[1] in ["empire", "khaganate", "khanate", "horde"]:
+                if country[1] in ["empire", "khaganate", "khanate", "horde", "order"]:
                     if country[0] not in ["golden", "great"]:
                         add_plural(country[0], tag, data)
                 if country[1] == "of":
@@ -65,7 +60,9 @@ class EU4_Main:
         # Hard-code nicknames or common names here
         data["rome"] = "ROM"
         data["timmy"] = "TIM"
-        data["mongolia"] = "KHA"
+        data["hre"] = "HRE"
+        data.pop("teutonics")
+        add_plural("teuton", "TEU", data)
         add_plural("habsburgs", "HAB", data)
         return data
 
@@ -93,9 +90,24 @@ class EU4_Main:
             data = self.fetch_idea_names(data)
             json.dump(data, f, ensure_ascii=False, indent=4)
 
+    def process_country_names(self):
+        # Hardcode discrepancies between country name and in-code country representation here
+        self.country_data["KHA"]["country"] = "Mongolia"
+
+        for tag in self.tag_list:
+            country = self.country_data[tag]["country"].split()
+            for word in ["Empire", "Khaganate", "Khanate", "Horde", "Order"]:
+                if word in country[0] and country[0] not in ["Ilkhanate"]:
+                    ind = country[0].index(word)
+                    country = [country[0][:ind].strip(), word]
+                    country = " ".join(country)
+                    self.country_data[tag]["country"] = country
+                    print(country)
+        self.country_names = {tag: self.country_data[tag]["country"] for tag in self.country_data}
+
     def process_data(self):
         colonial_continents = ["north_america", "south_america", "australia"]
-
+        
         for tag in self.tag_list:
             if "capital" in self.country_data[tag]:
                 for key in self.areas:
@@ -486,6 +498,7 @@ class EU4_Main:
             self.add_idea(self.generic_ideas, tag)
 
     def main(self):
+        self.process_country_names()
         self.process_data()
         self.assign_ideas()
         self.parse_basic_ideas()

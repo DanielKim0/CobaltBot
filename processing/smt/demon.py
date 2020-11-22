@@ -12,6 +12,8 @@ class SMT_Demon_Parser:
         self.results = results
         create_folder(self.results)
         create_folder(os.path.join(self.results, "demons"))
+        create_folder(os.path.join(self.results, "fusions"))
+        create_folder(os.path.join(self.results, "fissions"))
 
     def render_html(self, link, script=None):
         res = self.session.get(link)
@@ -62,7 +64,7 @@ class SMT_Demon_Parser:
         
         special = len(data[0]) == 4
         if special:
-            return [[data[0] for i in data], special]
+            return {"fissions": [data[i][-1] for i in range(len(data))], "special": special}
         
         fissions = defaultdict(list)
         for item in data:
@@ -70,7 +72,7 @@ class SMT_Demon_Parser:
             demon2 = item[6]
             fissions[demon1].append(demon2)
             fissions[demon2].append(demon1)
-        return [fissions, special]
+        return {"fissions": fissions, "special": special}
 
     def get_demon_fusions(self, link):
         data = []
@@ -89,17 +91,21 @@ class SMT_Demon_Parser:
     def main(self):
         links = self.parse_demon_list()
         names = []
-        for link in links:
+        for link in links[:1]:
             name, link = link
+            print(name)
             names.append(name)
             stats = self.get_demon_stats(link)
-            fissions, special = self.get_demon_fissions(link + "/fissions")
+            fissions = self.get_demon_fissions(link + "/fissions")
             fusions = self.get_demon_fusions(link + "/fusions")
-            stats["special"] = special
-            stats["fissions"] = fissions
-            stats["fusions"] = fusions
+
             with open(os.path.join(self.results, "demons", name + ".json"), "w") as f:
                 f.write(json.dumps(stats))
+            with open(os.path.join(self.results, "fissions", name + ".json"), "w") as f:
+                f.write(json.dumps(fissions))
+            with open(os.path.join(self.results, "fusions", name + ".json"), "w") as f:
+                f.write(json.dumps(fusions))
+
         with open(os.path.join(self.results, "demon_names.json"), "w") as f:
             f.write(json.dumps(names))
 

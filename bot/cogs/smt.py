@@ -8,5 +8,6 @@ import json
 import difflib
 
 class SMTCog(CobaltCog):
-    def __init__(self):
-        pass
+    def __init__(self, stats, fusions, fissions):
+        super().__init__()
+        

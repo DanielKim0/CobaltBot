@@ -13,7 +13,7 @@ class BasicCog(commands.Cog):
     # test command, delete later
     @commands.command(name="ayaya", description="", aliases=[], usage="")
     async def ayaya(self, ctx):
-        await ctx.send("ayaya")
+        await ctx.send("ayayaaaaaaaaaaaaaa")
 
     @commands.command(name="add_cog", description="", aliases=[], usage="")
     @commands.has_permissions(administrator=True)

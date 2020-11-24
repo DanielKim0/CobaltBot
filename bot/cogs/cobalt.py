@@ -55,10 +55,13 @@ class CobaltCog(commands.Cog):
             return string
         else:
             matches = difflib.get_close_matches(string, names)
-            message = "Sorry, I couldn't find any matches.\nDid you mean "
-            for item in matches[:-1]:
-                message += item + " or "
-            message += matches[-1] + "?"
+            if matches:
+                message = "Sorry, I couldn't find any matches.\nDid you mean "
+                for item in matches[:-1]:
+                    message += item + " or "
+                message += matches[-1] + "?"
+            else:
+                message = "Sorry, I couldn't find any matches."
             await ctx.send(message)
             return None
 

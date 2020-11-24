@@ -17,7 +17,6 @@ class SMTCog(CobaltCog):
         self.fissions = fissions
         with open(names, "r") as f:
             self.names = json.load(f)
-        print(self.names)
 
     async def get_demon(self, ctx, name: str):
         name = await self.nearest_spelling(ctx, name.lower(), self.names)
@@ -57,7 +56,7 @@ class SMTCog(CobaltCog):
                 data = await f.read()
             data = json.loads(data)
             if demon2 in data:
-                msg = demon1 + " + " demon2 " -> " data[demon2]
+                msg = demon1 + " + " + demon2 + " -> " + data[demon2]
             else:
                 msg = "Invalid fusion!"
             await ctx.send(msg)
@@ -73,7 +72,7 @@ class SMTCog(CobaltCog):
                 data = await f.read()
             data = json.loads(data)
             if demon1 in data:
-                msg = demon1 + " + " str(data[demon1]) " -> " demon2
+                msg = demon1 + " + " + str(data[demon1]) + " -> " + demon2
             else:
                 msg = "Invalid fusion!"
             await ctx.send(msg)

@@ -34,17 +34,29 @@ class SMT_Demon_Parser:
         found = res.html.find("tr.app-smt-demon-list-row")
         return [[item.find("td")[2].text, self.url + self.game + "/demons/" + item.find("td")[2].text] for item in found]
 
-    def get_demon_stats(self, link, name):
-        res = self.render_html(link)
+    def get_demon_stats(self, res, name):
         stats = self.extract_table_text(res, "app-demon-stats")
+        data = [item.text for item in res.html.find("app-demon-stats")[0].find("thead")[0].find("tr")[0].find("th")][0].split()
+        stats[0].insert(0, "Name")
+        stats[1].insert(0, name)
+        stats[0].insert(1, "Level")
+        stats[1].insert(1, data[1])
+        if self.game == "mib" or self.game[0] == "p":
+            stats[0].insert(2, "Arcana")
+        else:
+            stats[0].insert(2, "Race")
+        stats[1].insert(2, data[2])
+        return stats
+
+    def get_demon_info(self, link, name):
+        res = self.render_html(link)
+        stats = self.get_demon_stats(res, name)
         resists = self.extract_table_text(res, "app-demon-resists")
         skills = self.extract_table_text(res, "app-demon-skills")
         skills[1] = split_list(skills[1], len(skills[0]))
         results = {"stats": stats, "resist": resists, "skills": skills}
         if self.game in ["smt4f"]:
             results["affinities"] = self.extract_table_text(res, "app-demon-inherits")
-        results["stats"][0].insert(0, "Name")
-        results["stats"][1].insert(0, name)
         return results
 
     def get_demon_fissions(self, link):
@@ -97,7 +109,7 @@ class SMT_Demon_Parser:
             name, link = link
             print(name)
             names.append(name.lower())
-            stats = self.get_demon_stats(link, name)
+            stats = self.get_demon_info(link, name)
             fissions = self.get_demon_fissions(link + "/fissions")
             fusions = self.get_demon_fusions(link + "/fusions")
 

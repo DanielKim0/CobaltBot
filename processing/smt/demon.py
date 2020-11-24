@@ -23,6 +23,18 @@ class SMT_Demon_Parser:
             res.html.render()
         return res
 
+    def extract_evolutions(self, res):
+        data = res.html.find("app-fusion-entry-table")
+        result = [[], []]
+
+        for item in data:
+            header = item.find("table")[0].find("thead")[0].find("tr")[0].find("th")[0].text
+            text = item.find("table")[0].find("tbody")[0].find("tr")[0].find("td")[-1].text
+            if header in ["Evolves From", "Evolves To"]:
+                result[0].append(header)
+                result[1].append(text)
+        return result
+
     def extract_table_text(self, res, cla):
         data = res.html.find(cla)[0]
         return [[item.text for item in data.find("thead")[0].find("tr")[-1].find("th")], 
@@ -35,17 +47,26 @@ class SMT_Demon_Parser:
         return [[item.find("td")[2].text, self.url + self.game + "/demons/" + item.find("td")[2].text] for item in found]
 
     def get_demon_stats(self, res, name):
-        stats = self.extract_table_text(res, "app-demon-stats")
+        stats = [[], []]
         data = [item.text for item in res.html.find("app-demon-stats")[0].find("thead")[0].find("tr")[0].find("th")][0].split()
-        stats[0].insert(0, "Name")
-        stats[1].insert(0, name)
-        stats[0].insert(1, "Level")
-        stats[1].insert(1, data[1])
+        
+        stats[0].append("Name")
+        stats[1].append(name)
+        stats[0].append("Level")
+        stats[1].append(data[1])
         if self.game == "mib" or self.game[0] == "p":
-            stats[0].insert(2, "Arcana")
+            stats[0].append("Arcana")
         else:
-            stats[0].insert(2, "Race")
-        stats[1].insert(2, data[2])
+            stats[0].append("Race")
+        stats[1].append(data[2])
+
+        evos = self.extract_evolutions(res)
+        stats[0].extend(evos[0])
+        stats[1].extend(evos[1])
+
+        data = self.extract_table_text(res, "app-demon-stats")
+        stats[0].extend(data[0])
+        stats[1].extend(data[1])
         return stats
 
     def get_demon_info(self, link, name):
@@ -105,7 +126,7 @@ class SMT_Demon_Parser:
     def main(self):
         links = self.parse_demon_list()
         names = []
-        for link in links[:10]:
+        for link in links:
             name, link = link
             print(name)
             names.append(name.lower())

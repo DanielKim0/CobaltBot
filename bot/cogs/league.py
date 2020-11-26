@@ -8,6 +8,8 @@ from tabulate import tabulate
 import requests
 import ast
 import asyncio
+from threading import Event, Thread, Lock
+import sys
 
 class LeagueCog(CobaltCog):
     def __init__(self):
@@ -15,15 +17,28 @@ class LeagueCog(CobaltCog):
         load_dotenv()
         self.token = os.getenv("RIOT_TOKEN")
         self.header = {"User-Agent": "Linux Mint:CobaltBot:v0.0.1"}
-        self.dist = self.get_dist()
-        # self.schedule_dist()
+        self.lock = Lock()
+        self.call_repeatedly()
+
+    def call_repeatedly(self):
+        stopped = Event()
+
+        def loop(self):
+            while not stopped.wait(15):
+                self.get_dist()
+
+        Thread(target=loop, args = [self]).start()    
+        return stopped.set
 
     async def calculate_dist(self, mmr, queue):
         mmr = str(round(mmr, -1))
+        self.lock.acquire()
         percent = self.dist[queue][mmr]/self.dist[queue]["total"]
+        self.lock.release()
         return "top " + str(round((1 - percent) * 100, 2)) + "%"
 
     def get_dist(self):
+        sys.stdout.flush()
         website = "https://na.whatismymmr.com/api/v1/distribution"
         req = requests.get(website, headers=self.header)
         text = ast.literal_eval(req.text)
@@ -44,22 +59,10 @@ class LeagueCog(CobaltCog):
 
             dist[queue]["max"] = keys[-1]
             dist[queue]["total"] = total
-        return dist
 
-    def schedule_dist(self):
-        async def dist_job(self):
-            while True:
-                dist = self.get_dist()
-                await asyncio.sleep(3600)
-
-        loop = asyncio.get_event_loop()
-        task = loop.create_task(self.dist_job())
-
-        try:
-            loop.run_until_complete(task)
-        except asyncio.CancelledError:
-            with open('err.log', 'a') as f:
-                f.write("Async league cog distribution update cancelled!")
+        self.lock.acquire()
+        self.dist = dist
+        self.lock.release()
 
     @commands.command(name="mmr", description="", aliases=[], usage="")
     @check_valid_command

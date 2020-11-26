@@ -18,9 +18,10 @@ class LeagueCog(CobaltCog):
         self.dist = self.get_dist()
         # self.schedule_dist()
 
-    def calculate_dist(self, mmr, queue):
+    async def calculate_dist(self, mmr, queue):
         mmr = str(round(mmr, -1))
-        return self.dist[queue][mmr]/self.dist[queue]["total"]
+        percent = self.dist[queue][mmr]/self.dist[queue]["total"]
+        return "top " + str(round((1 - percent) * 100, 2)) + "%"
 
     def get_dist(self):
         website = "https://na.whatismymmr.com/api/v1/distribution"
@@ -67,20 +68,36 @@ class LeagueCog(CobaltCog):
         req = requests.get("https://na.whatismymmr.com/api/v1/summoner?name=" + name, headers=self.header)
         text = ast.literal_eval(req.text.replace("null", "\"\"").replace("true", "True").replace("false", "False"))
 
+        if "error" in text:
+            await ctx.send("Error: invalid username!")
+            return 
+
+        warn = False
         results = []
         for queue in text:
             results.append([[], []])
-            results[-1][0].append(queue)
+
+            results[-1][0] = [queue + " mmr", queue + " %"]
+
             if text[queue]["avg"]:
-                dist = self.calculate_dist(text[queue]["avg"], queue)
+                average = str(text[queue]["avg"])
+                if text[queue]["warn"]:
+                    average += "*"
+                    warn = True
+                average += " ± " + str(text[queue]["err"])
+                results[-1][1].append(average)
+                results[-1][1].append(await self.calculate_dist(text[queue]["avg"], queue))
             else:
-                dist = "N/A"
-            results[-1][1].append(dist)
+                results[-1][1] = ["N/A", "N/A"]
 
         table = ""
         for item in results:
             table += tabulate(item, tablefmt="grid") + "\n"
-        await ctx.send("```\n" + name + "'s stats\n\n" + table + "```")
+        table = "```\n" + name + "'s stats\n\n" + table + "\n"
+        if warn:
+            table += "* Insufficient data, proceed with caution.\n"
+        table += "```"
+        await ctx.send(table)
 
     def get_info(self, name):
         pass

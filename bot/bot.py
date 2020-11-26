@@ -8,6 +8,7 @@ from cogs.prefix import PrefixCog, fetch_prefix
 from cogs.basic import BasicCog
 from cogs.eu4 import EU4Cog
 from cogs.smt import SMTCog
+from cogs.league import LeagueCog
 
 class CobaltBot(commands.Bot):
     def __init__(self, cog_data, prefix_data, eu4_data, smt_data):
@@ -18,6 +19,7 @@ class CobaltBot(commands.Bot):
         self.basic.cog_dict = {
             "eu4": EU4Cog(eu4_data[0], eu4_data[1], eu4_data[2], eu4_data[3]),
             "smt": SMTCog(smt_data[0], smt_data[1], smt_data[2], smt_data[3]),
+            "league": LeagueCog(),
         }
 
         self.add_cog(self.basic)

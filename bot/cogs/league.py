@@ -2,24 +2,27 @@ import os
 import discord
 from dotenv import load_dotenv
 from discord.ext import commands
-from cobalt import CobaltCog, check_valid_command
+from cogs.cobalt import CobaltCog, check_valid_command
 import json
 from tabulate import tabulate
 import requests
 import ast
+import asyncio
 
 class LeagueCog(CobaltCog):
     def __init__(self):
         super().__init__()
         load_dotenv()
         self.token = os.getenv("RIOT_TOKEN")
-        self.header = {"User-Agent": "Linux:CobaltBot:v0.0.1"}
+        self.header = {"User-Agent": "Linux Mint:CobaltBot:v0.0.1"}
         self.dist = self.get_dist()
         # self.schedule_dist()
 
     def calculate_dist(self, mmr, queue):
-        mmr = round(mmr, -1)
-        return self.dist[queue][mmr]/self.dist[queue][total]
+        print(self.dist)
+        mmr = str(round(mmr, -1))
+        
+        return self.dist[queue][mmr]/self.dist[queue]["total"]
 
     def get_dist(self):
         website = "https://na.whatismymmr.com/api/v1/distribution"
@@ -39,8 +42,9 @@ class LeagueCog(CobaltCog):
                     text[queue]["min"] = key
                 total += text[queue][key]
                 dist[queue][key] = total
-            text[queue]["max"] = keys[-1]
-            text[queue]["total"] = total       
+
+            dist[queue]["max"] = keys[-1]
+            dist[queue]["total"] = total
         return dist
 
     def schedule_dist(self):
@@ -73,13 +77,14 @@ class LeagueCog(CobaltCog):
                 dist = self.calculate_dist(text[queue]["avg"], queue)
             else:
                 dist = "N/A"
+            results[-1][1].append(dist)
         
-        print(resuts)
+        print(results)
 
         table = ""
         for item in results:
             table += tabulate(item) + "\n"
-        ctx.respond(table)
+        await ctx.send(table)
 
     def get_info(self, name):
         pass

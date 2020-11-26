@@ -19,9 +19,7 @@ class LeagueCog(CobaltCog):
         # self.schedule_dist()
 
     def calculate_dist(self, mmr, queue):
-        print(self.dist)
         mmr = str(round(mmr, -1))
-        
         return self.dist[queue][mmr]/self.dist[queue]["total"]
 
     def get_dist(self):
@@ -64,7 +62,7 @@ class LeagueCog(CobaltCog):
 
     @commands.command(name="mmr", description="", aliases=[], usage="")
     @check_valid_command
-    def get_mmr(self, ctx, name: str):
+    async def get_mmr(self, ctx, name: str):
         name = name.replace(" ", "+")
         req = requests.get("https://na.whatismymmr.com/api/v1/summoner?name=" + name, headers=self.header)
         text = ast.literal_eval(req.text.replace("null", "\"\"").replace("true", "True").replace("false", "False"))
@@ -78,13 +76,11 @@ class LeagueCog(CobaltCog):
             else:
                 dist = "N/A"
             results[-1][1].append(dist)
-        
-        print(results)
 
         table = ""
         for item in results:
-            table += tabulate(item) + "\n"
-        await ctx.send(table)
+            table += tabulate(item, tablefmt="grid") + "\n"
+        await ctx.send("```\n" + name + "'s stats\n\n" + table + "```")
 
     def get_info(self, name):
         pass

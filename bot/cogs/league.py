@@ -10,15 +10,20 @@ import ast
 import asyncio
 from threading import Event, Thread, Lock
 import sys
+import cassiopeia as cass
 
 class LeagueCog(CobaltCog):
     def __init__(self):
         super().__init__()
         load_dotenv()
-        self.token = os.getenv("RIOT_TOKEN")
+        self.cass_setup
         self.header = {"User-Agent": "Linux Mint:CobaltBot:v0.0.1"}
         self.lock = Lock()
         self.call_repeatedly()
+
+    def cass_setup(self):
+        cass.set_riot_api_key(os.getenv("RIOT_TOKEN"))
+        cass.set_default_region("NA")
 
     def call_repeatedly(self):
         stopped = Event()
@@ -64,9 +69,9 @@ class LeagueCog(CobaltCog):
         self.dist = dist
         self.lock.release()
 
-    @commands.command(name="mmr", description="", aliases=[], usage="")
+    @commands.command(name="league", description="", aliases=[], usage="")
     @check_valid_command
-    async def get_mmr(self, ctx, name: str):
+    async def get_stats(self, ctx, name: str):
         name = name.replace(" ", "+")
         req = requests.get("https://na.whatismymmr.com/api/v1/summoner?name=" + name, headers=self.header)
         text = ast.literal_eval(req.text.replace("null", "\"\"").replace("true", "True").replace("false", "False"))
@@ -104,7 +109,3 @@ class LeagueCog(CobaltCog):
 
     def get_info(self, name):
         pass
-
-if __name__ == "__main__":
-    l = LeagueCog()
-    l.get_mmr("catast999")

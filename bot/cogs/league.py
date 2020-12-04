@@ -21,6 +21,13 @@ class LeagueCog(CobaltCog):
         self.get_dist()
         self.cass_setup()
         self.call_repeatedly()
+        self.champs = self.champ_setup()
+
+    def champ_setup(self):
+        champs = dict()
+        for champ in cass.get_champions():
+            champs[champ.id] = champ.name
+        return champs
 
     def cass_setup(self):
         cass.set_riot_api_key(os.getenv("RIOT_TOKEN"))
@@ -30,7 +37,8 @@ class LeagueCog(CobaltCog):
         stopped = Event()
 
         def loop(self):
-            while not stopped.wait(15):
+            while not stopped.wait(60):
+                print("Fetching league dist")
                 self.get_dist()
 
         Thread(target=loop, args = [self]).start()    
@@ -96,31 +104,71 @@ class LeagueCog(CobaltCog):
                 results[1].extend(["N/A", "N/A"])
         return results, warn
 
-    async def get_cass(self, name):
-        summ = [["", "Rank"]]
-        player = cass.get_summoner(name=name)
-        
+    async def get_cass(self, player):
+        summ = [["Level", "Solo Rank", "Flex Rank"], []]
+        summ[1].append(player.level)
 
-        champs = [["name", "points", "level"]]
+        ranks = dict()
+        for item in player.ranks:
+            ranks[item.value] = ranks[item].tier + ranks[item].division
+        for queue in ["RANKED_SOLO_5x5", "RANKED_FLEX_SR"]:
+            if queue in ranks:
+                summ[1].append(ranks[queue])
+            else:
+                summ[1].append("N/A")
+
+        champs = [["Champ", "Points", "Level"]]
         for master in player.champion_masteries[:5]:
-            champs.append([master.champion,name, master.points, master.level])
+            champs.append([master.champion.name, master.points, master.level])
 
         return [summ, champs]
+
+    def get_match_player(self, match, id):
+        for team in match.teams:
+            for p in team.participants:
+                if p.summoner.id == id:
+                    return p
+
+    async def get_last_match(self, player):
+        data = [["Queue", "Champ", "KDA", "CS", "Vision"], []]
+        summ = None
+        num = 0
+
+        while not summ and num < 10:
+            match = player.match_history[num]
+            summ = self.get_match_player(match, player.id)
+            stats = summ.stats
+            num += 1
+
+        if not player:
+            return None
+
+        data[1].append(match.queue.value)
+        data[1].append(self.champs[summ.champion.id])
+        data[1].append(str(stats.kills) + "/" + str(stats.deaths) + "/" + str(stats.assists))
+        data[1].append(stats.total_minions_killed)
+        data[1].append(stats.vision_score)
+        return data
 
     @commands.command(name="league", description="", aliases=[], usage="")
     @check_valid_command
     async def get_stats(self, ctx, name: str):
+        player = cass.get_summoner(name=name)
         names = ["User Data", "Champion Data", "MMR Data"]
         results = []
 
-        results.extend(await self.get_cass(name))
+        results.extend(await self.get_cass(player))
         mmr, warn = await self.get_mmr(name)
         results.append(mmr)
+        match = await self.get_last_match(player)
+        if match:
+            names.append("Last Match Stats")
+            results.append(match)
 
         table = ""
         for i in range(len(results)):
             table += names[i] + "\n"
-            table += tabulate(results[i], tablefmt="grid") + "\n"
+            table += tabulate(results[i], tablefmt="grid") + "\n\n"
         table = "```\n" + name + "'s stats\n\n" + table + "\n"
         if warn:
             table += "* Insufficient data, proceed with caution.\n"

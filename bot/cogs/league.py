@@ -97,7 +97,10 @@ class LeagueCog(CobaltCog):
                 if text[queue]["warn"]:
                     average += "*"
                     warn = True
-                average += " ± " + str(text[queue]["err"])
+                interval = str(text[queue]["err"])
+                if not interval:
+                    interval = "0"
+                average += " ± " + interval
                 results[1].append(average)
                 results[1].append(await self.calculate_dist(text[queue]["avg"], queue))
             else:

@@ -16,9 +16,10 @@ class LeagueCog(CobaltCog):
     def __init__(self):
         super().__init__()
         load_dotenv()
-        self.cass_setup
         self.header = {"User-Agent": "Linux Mint:CobaltBot:v0.0.1"}
         self.lock = Lock()
+        self.get_dist()
+        self.cass_setup()
         self.call_repeatedly()
 
     def cass_setup(self):
@@ -69,9 +70,8 @@ class LeagueCog(CobaltCog):
         self.dist = dist
         self.lock.release()
 
-    @commands.command(name="league", description="", aliases=[], usage="")
-    @check_valid_command
-    async def get_stats(self, ctx, name: str):
+    async def get_mmr(self, name):
+        results = [[], []]
         name = name.replace(" ", "+")
         req = requests.get("https://na.whatismymmr.com/api/v1/summoner?name=" + name, headers=self.header)
         text = ast.literal_eval(req.text.replace("null", "\"\"").replace("true", "True").replace("false", "False"))
@@ -81,11 +81,8 @@ class LeagueCog(CobaltCog):
             return 
 
         warn = False
-        results = []
         for queue in text:
-            results.append([[], []])
-
-            results[-1][0] = [queue + " mmr", queue + " %"]
+            results[0].extend([queue + " mmr", queue + " %"])
 
             if text[queue]["avg"]:
                 average = str(text[queue]["avg"])
@@ -93,18 +90,42 @@ class LeagueCog(CobaltCog):
                     average += "*"
                     warn = True
                 average += " ± " + str(text[queue]["err"])
-                results[-1][1].append(average)
-                results[-1][1].append(await self.calculate_dist(text[queue]["avg"], queue))
+                results[1].append(average)
+                results[1].append(await self.calculate_dist(text[queue]["avg"], queue))
             else:
-                results[-1][1] = ["N/A", "N/A"]
+                results[1].extend(["N/A", "N/A"])
+        return results, warn
+
+    async def get_cass(self, name):
+        summ = [["", "Rank"]]
+        player = cass.get_summoner(name=name)
+        
+
+        champs = [["name", "points", "level"]]
+        for master in player.champion_masteries[:5]:
+            champs.append([master.champion,name, master.points, master.level])
+
+        return [summ, champs]
+
+    @commands.command(name="league", description="", aliases=[], usage="")
+    @check_valid_command
+    async def get_stats(self, ctx, name: str):
+        names = ["User Data", "Champion Data", "MMR Data"]
+        results = []
+
+        results.extend(await self.get_cass(name))
+        mmr, warn = await self.get_mmr(name)
+        results.append(mmr)
 
         table = ""
-        for item in results:
-            table += tabulate(item, tablefmt="grid") + "\n"
+        for i in range(len(results)):
+            table += names[i] + "\n"
+            table += tabulate(results[i], tablefmt="grid") + "\n"
         table = "```\n" + name + "'s stats\n\n" + table + "\n"
         if warn:
             table += "* Insufficient data, proceed with caution.\n"
         table += "```"
+
         await ctx.send(table)
 
     def get_info(self, name):

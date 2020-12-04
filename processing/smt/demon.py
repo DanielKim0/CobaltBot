@@ -9,7 +9,7 @@ class SMT_Demon_Parser:
         self.url = "https://aqiu384.github.io/megaten-fusion-tool/"
         self.game = game
         self.session = HTMLSession()
-        self.results = results
+        self.results = os.path.join(results, game)
         create_folder(self.results)
         create_folder(os.path.join(self.results, "demons"))
         create_folder(os.path.join(self.results, "fusions"))
@@ -126,7 +126,7 @@ class SMT_Demon_Parser:
     def main(self):
         links = self.parse_demon_list()
         names = []
-        for link in links:
+        for link in links[:10]:
             name, link = link
             print(name)
             names.append(name.lower())
@@ -145,5 +145,8 @@ class SMT_Demon_Parser:
             f.write(json.dumps(names))
 
 if __name__ == "__main__":
-    p = SMT_Demon_Parser("smt4", "results")
-    p.main()
+    for game in ["smt3", "smt4", "smt4f"]:
+        print("Game: " + game)
+        p = SMT_Demon_Parser(game, "results")
+        p.main()
+        print()

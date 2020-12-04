@@ -18,7 +18,7 @@ class CobaltBot(commands.Bot):
         self.add_cog(self.prefix) # not included in cogs, valid for all servers
         self.basic.cog_dict = {
             "eu4": EU4Cog(eu4_data[0], eu4_data[1], eu4_data[2], eu4_data[3]),
-            "smt": SMTCog(smt_data[0], smt_data[1], smt_data[2], smt_data[3]),
+            "smt": SMTCog(smt_data[0]),
             "league": LeagueCog(),
         }
 
@@ -56,11 +56,8 @@ if __name__ == "__main__":
     idea_data = "/home/daniel/Documents/discord/processing/eu4/results/ideas"
     eu4_data = [identifiers, full_data, impor_data, idea_data]
 
-    stats = "/home/daniel/Documents/discord/processing/smt/results/demons"
-    fusions = "/home/daniel/Documents/discord/processing/smt/results/fusions"
-    fissions = "/home/daniel/Documents/discord/processing/smt/results/fissions"
-    names = "/home/daniel/Documents/discord/processing/smt/results/demon_names.json"
-    smt_data = [stats, fusions, fissions, names]
+    names = "/home/daniel/Documents/discord/processing/smt/results/"
+    smt_data = [names]
 
     cog_data = "/home/daniel/Documents/discord/bot_data/cogs.json"
     prefix_data = "/home/daniel/Documents/discord/bot_data/prefixes.json"

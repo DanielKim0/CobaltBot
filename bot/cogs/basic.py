@@ -10,11 +10,6 @@ class BasicCog(commands.Cog):
         self.cog_data = cog_data
         self.cog_dict = dict()
 
-    # test command, delete later
-    @commands.command(name="ayaya", description="", aliases=[], usage="")
-    async def ayaya(self, ctx):
-        await ctx.send("ayayaaaaaaaaaaaaaa")
-
     @commands.command(name="add_cog", description="", aliases=[], usage="")
     @commands.has_permissions(administrator=True)
     async def add_cog(self, ctx, cog: str):

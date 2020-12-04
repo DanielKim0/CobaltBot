@@ -37,7 +37,7 @@ class LeagueCog(CobaltCog):
         stopped = Event()
 
         def loop(self):
-            while not stopped.wait(60):
+            while not stopped.wait(3600):
                 print("Fetching league dist")
                 self.get_dist()
 

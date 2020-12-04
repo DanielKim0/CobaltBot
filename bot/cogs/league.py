@@ -110,7 +110,8 @@ class LeagueCog(CobaltCog):
 
         ranks = dict()
         for item in player.ranks:
-            ranks[item.value] = ranks[item].tier + ranks[item].division
+            ranks[item.value] = str(player.ranks[item].tier) + " " + str(player.ranks[item].division)
+
         for queue in ["RANKED_SOLO_5x5", "RANKED_FLEX_SR"]:
             if queue in ranks:
                 summ[1].append(ranks[queue])

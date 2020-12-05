@@ -36,9 +36,11 @@ class SMT_Demon_Parser:
         return result
 
     def extract_table_text(self, res, cla):
-        data = res.html.find(cla)[0]
-        return [[item.text for item in data.find("thead")[0].find("tr")[-1].find("th")], 
-                [item.text for item in data.find("td")]]
+        data = res.html.find(cla)
+        if not data:
+            return
+        return [[item.text for item in data[0].find("thead")[0].find("tr")[-1].find("th")], 
+                [item.text for item in data[0].find("td")]]
 
     def parse_demon_list(self):
         demon_list = self.url + "?csr=/" + self.game + "/demons"
@@ -73,16 +75,15 @@ class SMT_Demon_Parser:
         res = self.render_html(link)
         stats = self.get_demon_stats(res, name)
         resists = self.extract_table_text(res, "app-demon-resists")
+        inherits = self.extract_table_text(res, "app-demon-inherits")
+
         skills = self.extract_table_text(res, "app-demon-skills")
         skills[1] = split_list(skills[1], len(skills[0]))
         for i in range(len(skills[1])):
             if len(skills[1][i][3].split(". ")) > 1:
                 skills[1][i][3] = skills[1][i][3].split(". ")[0] + "."
-        results = {"stats": stats, "resist": resists, "skills": skills}
-        if self.game in ["smt4f"]:
-            results["affinities"] = self.extract_table_text(res, "app-demon-inherits")
-        # if self.game in ["smt3"]:
-        #     results["inherits"]
+
+        results = {"stats": stats, "resist": resists, "skills": skills, "inherits": inherits}
         return results
 
     def get_demon_fissions(self, link):
@@ -131,7 +132,7 @@ class SMT_Demon_Parser:
     def main(self):
         links = self.parse_demon_list()
         names = []
-        for link in links[:10]:
+        for link in links:
             name, link = link
             print(name)
             names.append(name.lower())
@@ -150,8 +151,8 @@ class SMT_Demon_Parser:
             f.write(json.dumps(names))
 
 if __name__ == "__main__":
-    # games = ["smt3", "smt4", "smt4f"]
-    games = ["smt3"]
+    games = ["smt3", "smt4", "smt4f"]
+    # games = ["smt3"]
     for game in games:
         print("Game: " + game)
         p = SMT_Demon_Parser(game, "results")

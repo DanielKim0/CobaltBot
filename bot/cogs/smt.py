@@ -50,8 +50,8 @@ class SMTCog(CobaltCog):
         table = ""
         table += tabulate([data["stats"][1]], data["stats"][0], tablefmt="grid") + "\n"
         table += tabulate([data["resist"][1]], data["resist"][0], tablefmt="grid") + "\n"
-        if "affinities" in data:
-            table += tabulate([data["affinities"][1]], data["affinities"][0], tablefmt="grid") + "\n"
+        if data["inherits"] and data["inherits"][0]:
+            table += tabulate([data["inherits"][1]], data["inherits"][0], tablefmt="grid") + "\n"
         
         skills = tabulate(data["skills"][1], data["skills"][0], tablefmt="grid")
         if len(skills) > 2000:

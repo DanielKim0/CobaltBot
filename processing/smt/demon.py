@@ -75,9 +75,14 @@ class SMT_Demon_Parser:
         resists = self.extract_table_text(res, "app-demon-resists")
         skills = self.extract_table_text(res, "app-demon-skills")
         skills[1] = split_list(skills[1], len(skills[0]))
+        for i in range(len(skills[1])):
+            if len(skills[1][i][3].split(". ")) > 1:
+                skills[1][i][3] = skills[1][i][3].split(". ")[0] + "."
         results = {"stats": stats, "resist": resists, "skills": skills}
         if self.game in ["smt4f"]:
             results["affinities"] = self.extract_table_text(res, "app-demon-inherits")
+        # if self.game in ["smt3"]:
+        #     results["inherits"]
         return results
 
     def get_demon_fissions(self, link):
@@ -145,7 +150,9 @@ class SMT_Demon_Parser:
             f.write(json.dumps(names))
 
 if __name__ == "__main__":
-    for game in ["smt3", "smt4", "smt4f"]:
+    # games = ["smt3", "smt4", "smt4f"]
+    games = ["smt3"]
+    for game in games:
         print("Game: " + game)
         p = SMT_Demon_Parser(game, "results")
         p.main()

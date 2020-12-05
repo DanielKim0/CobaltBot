@@ -55,9 +55,11 @@ class SMTCog(CobaltCog):
         
         skills = tabulate(data["skills"][1], data["skills"][0], tablefmt="grid")
         if len(skills) > 2000:
-            skills1 = tabulate(data["skills"][1][:3], data["skills"][0], tablefmt="grid")
-            skills2 = tabulate(data["skills"][1][3:], tablefmt="grid")
-            skills = [skills1, skills2]
+            counter = 0
+            split_skills = []
+            skills = skills.split("\n")
+            skills = ["\n".join(skills[8*i:min(8*(i+1)+1, len(skills))])
+                        for i in range(int(len(skills) / 8))]
         else:
             skills = [skills]
 

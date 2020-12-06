@@ -374,7 +374,7 @@ class EU4_Main:
         self.add_parse(self.parse_religion(data), embed)
         for key in dependencies:
             self.add_parse(self.parse_variable(key, data), embed)
-        return embed
+        return self.add_present(data, embed)
         
     def format_full(self, data, embed):
         if "Monarch Stats" in embed["fields"]:
@@ -382,8 +382,9 @@ class EU4_Main:
             embed["fields"].pop(ind)
             embed["messages"].pop(ind)
         
-        for key in ["monarch", "heir", "queen"]:
-            self.add_parse(self.parse_leader_full(key, data), embed)
+        if not ("present" not in data or data["present"] != True):
+            for key in ["monarch", "heir", "queen"]:
+                self.add_parse(self.parse_leader_full(key, data), embed)
         self.add_parse(self.parse_government(data), embed)
         self.add_parse(self.parse_culture(data), embed)
         
@@ -391,8 +392,15 @@ class EU4_Main:
         other = ["province_count", "historical_friend", "historical_rival"]
         for key in other:
             self.add_parse(self.parse_variable(key, data), embed)
+        return self.add_present(data, embed)
+
+    def add_present(self, data, embed):
         if "present" not in data or data["present"] != True:
             self.add_parse(("Present in 1444", "No"), embed)
+            if "Monarch Stats" in embed["fields"]:
+                ind = embed["fields"].index("Monarch Stats")
+                embed["fields"].pop(ind)
+                embed["messages"].pop(ind)
         else:
             self.add_parse(("Present in 1444", "Yes"), embed)
         return embed

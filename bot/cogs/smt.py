@@ -40,7 +40,7 @@ class SMTCog(CobaltCog):
                 names[game] = json.load(f)
         return names
 
-    async def get_demon(self, ctx, game, name: str):
+    async def get_demon(self, ctx, game: str, name: str):
         name = await self.nearest_spelling(ctx, name.lower(), self.names[game])
         if name is not None:
             name = " ".join([i.capitalize() for i in name.split()])

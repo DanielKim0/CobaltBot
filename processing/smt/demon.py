@@ -8,6 +8,7 @@ class SMT_Demon_Parser:
     def __init__(self, game, results):
         self.url = "https://aqiu384.github.io/megaten-fusion-tool/"
         self.game = game
+        self.persona = self.game == "mib" or self.game[0] == "p"
         self.session = HTMLSession()
         self.results = os.path.join(results, game)
         create_folder(self.results)
@@ -43,10 +44,15 @@ class SMT_Demon_Parser:
                 [item.text for item in data[0].find("td")]]
 
     def parse_demon_list(self):
-        demon_list = self.url + "?csr=/" + self.game + "/demons"
+        if self.persona:
+            describer = "personas"
+        else:
+            describer = "demons"
+
+        demon_list = self.url + "?csr=/" + self.game + "/" + describer
         res = self.render_html(demon_list)
         found = res.html.find("tr.app-smt-demon-list-row")
-        return [[item.find("td")[2].text, self.url + self.game + "/demons/" + item.find("td")[2].text] for item in found]
+        return [[item.find("td")[2].text, self.url + self.game + "/" + describer + "/" + item.find("td")[2].text] for item in found]
 
     def get_demon_stats(self, res, name):
         stats = [[], []]
@@ -56,7 +62,7 @@ class SMT_Demon_Parser:
         stats[1].append(name)
         stats[0].append("Level")
         stats[1].append(data[1])
-        if self.game == "mib" or self.game[0] == "p":
+        if self.persona:
             stats[0].append("Arcana")
         else:
             stats[0].append("Race")
@@ -132,7 +138,7 @@ class SMT_Demon_Parser:
     def main(self):
         links = self.parse_demon_list()
         names = []
-        for link in links:
+        for link in links[:10]:
             name, link = link
             print(name)
             names.append(name.lower())
@@ -151,8 +157,8 @@ class SMT_Demon_Parser:
             f.write(json.dumps(names))
 
 if __name__ == "__main__":
-    games = ["smt3", "smt4", "smt4f"]
-    # games = ["smt3"]
+    # games = ["smt3", "smt4", "smt4f"]
+    games = ["p3p"]
     for game in games:
         print("Game: " + game)
         p = SMT_Demon_Parser(game, "results")

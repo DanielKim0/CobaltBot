@@ -5,6 +5,25 @@ from cogs.cobalt import CobaltCog, check_valid_command
 import json
 import asyncio
 from tabulate import tabulate
+import functools
+
+def check_created_game(arg):
+    def decorator(func):
+        async def wrapper(*args, **kwargs):
+            obj = args[0]
+            ctx = args[1]
+            print(obj.locks)
+            print(ctx.guild.id)
+            if (str(ctx.guild.id) in obj.locks) == arg:
+                return await func(*args)
+            else:
+                if not arg:
+                    await ctx.send("Error: poker game already exists!")
+                else:
+                    await ctx.send("Error: poker game does not exist!")
+                return None
+        return wrapper
+    return decorator
 
 class PokerCog(CobaltCog):
     def __init__(self, folder):
@@ -16,13 +35,14 @@ class PokerCog(CobaltCog):
     def make_locks(self):
         locks = dict()
         for name in os.listdir(self.poker_dir):
-            name = os.path.splitext(os.path.basename(name))
+            name = os.path.splitext(os.path.basename(name))[0]
             locks[name] = asyncio.Lock()
         return locks
 
     # do by server instead of name
     @commands.command(name="create_poker")
     @check_valid_command
+    @check_created_game(False)
     async def create_poker(self, ctx):
         path = os.path.join(self.poker_dir, str(ctx.guild.id) + ".json")
         if os.path.isfile(path):
@@ -38,6 +58,7 @@ class PokerCog(CobaltCog):
 
     @commands.command(name="delete_poker")
     @check_valid_command
+    @check_created_game(True)
     async def delete_poker(self, ctx):
         path = os.path.join(self.poker_dir, str(ctx.guild.id) + ".json")
         if not os.path.isfile(path):
@@ -49,11 +70,13 @@ class PokerCog(CobaltCog):
 
     @commands.command(name="money")
     @check_valid_command
+    @check_created_game(True)
     async def money(self, ctx, name: str, amount: int):
         self.updates[name] = amount
             
     @commands.command(name="update_poker")
     @check_valid_command
+    @check_created_game(True)
     async def update_poker(self, ctx):
         path = os.path.join(self.poker_dir, str(ctx.guild.id) + ".json")
         async with self.locks[str(ctx.guild.id)]:
@@ -76,6 +99,7 @@ class PokerCog(CobaltCog):
 
     @commands.command(name="undo_poker")
     @check_valid_command
+    @check_created_game(True)
     async def undo_poker(self, ctx):
         path = os.path.join(self.poker_dir, str(ctx.guild.id) + ".json")
         async with self.locks[str(ctx.guild.id)]:
@@ -93,6 +117,7 @@ class PokerCog(CobaltCog):
 
     @commands.command(name="balance")
     @check_valid_command
+    @check_created_game(True)
     async def balance(self, ctx):
         path = os.path.join(self.poker_dir, str(ctx.guild.id) + ".json")
         async with self.locks[str(ctx.guild.id)]:

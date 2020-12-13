@@ -11,7 +11,14 @@ class PokerCog(CobaltCog):
         super().__init__()
         self.poker_dir = folder
         self.updates = dict()
-        self.lock = asyncio.Lock()
+        self.locks = self.make_locks()
+
+    def make_locks(self):
+        locks = dict()
+        for name in os.listdir(self.poker_dir):
+            name = os.path.splitext(os.path.basename(name))
+            locks[name] = asyncio.Lock()
+        return locks
 
     # do by server instead of name
     @commands.command(name="create_poker")
@@ -22,7 +29,7 @@ class PokerCog(CobaltCog):
             await ctx.send("Invalid poker name: name already exists!")
             return
         
-        async with self.lock:
+        async with self.locks[str(ctx.guild.id)]:
             with open(path, "w") as f:
                 data = dict()
                 data["rounds"] = 0
@@ -37,7 +44,7 @@ class PokerCog(CobaltCog):
             await ctx.send("Invalid poker name: name does not exist!")
             return
         
-        async with self.lock:
+        async with self.locks[str(ctx.guild.id)]:
             os.remove(path)
 
     @commands.command(name="money")
@@ -49,7 +56,7 @@ class PokerCog(CobaltCog):
     @check_valid_command
     async def update_poker(self, ctx):
         path = os.path.join(self.poker_dir, str(ctx.guild.id) + ".json")
-        async with self.lock:
+        async with self.locks[str(ctx.guild.id)]:
             with open(path, "r") as f:
                 data = json.load(f)
 
@@ -71,7 +78,7 @@ class PokerCog(CobaltCog):
     @check_valid_command
     async def undo_poker(self, ctx):
         path = os.path.join(self.poker_dir, str(ctx.guild.id) + ".json")
-        async with self.lock:
+        async with self.locks[str(ctx.guild.id)]:
             with open(path, "r") as f:
                 data = json.load(f)
                 
@@ -88,7 +95,7 @@ class PokerCog(CobaltCog):
     @check_valid_command
     async def balance(self, ctx):
         path = os.path.join(self.poker_dir, str(ctx.guild.id) + ".json")
-        async with self.lock:
+        async with self.locks[str(ctx.guild.id)]:
             with open(path, "r") as f:
                 data = json.load(f)
                 names = []

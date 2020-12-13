@@ -9,9 +9,10 @@ from cogs.basic import BasicCog
 from cogs.eu4 import EU4Cog
 from cogs.smt import SMTCog
 from cogs.league import LeagueCog
+from cogs.poker import PokerCog
 
 class CobaltBot(commands.Bot):
-    def __init__(self, cog_data, prefix_data, eu4_data, smt_data):
+    def __init__(self, cog_data, prefix_data, eu4_data, smt_data, poker_data):
         super().__init__(command_prefix=fetch_prefix)
         self.prefix = PrefixCog(prefix_data)
         self.basic = BasicCog(cog_data)
@@ -20,6 +21,7 @@ class CobaltBot(commands.Bot):
             "eu4": EU4Cog(eu4_data[0], eu4_data[1], eu4_data[2], eu4_data[3]),
             "smt": SMTCog(smt_data[0]),
             "league": LeagueCog(),
+            "poker": PokerCog(poker_data[0]),
         }
 
         self.add_cog(self.basic)
@@ -59,8 +61,11 @@ if __name__ == "__main__":
     names = "/home/daniel/Documents/discord/processing/smt/results/"
     smt_data = [names]
 
+    poker = "/home/daniel/Documents/discord/bot_data/poker"
+    poker_data = [poker]
+
     cog_data = "/home/daniel/Documents/discord/bot_data/cogs.json"
     prefix_data = "/home/daniel/Documents/discord/bot_data/prefixes.json"
 
-    bot = CobaltBot(cog_data, prefix_data, eu4_data, smt_data)
+    bot = CobaltBot(cog_data, prefix_data, eu4_data, smt_data, poker_data)
     bot.run()

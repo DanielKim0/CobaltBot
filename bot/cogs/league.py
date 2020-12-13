@@ -46,9 +46,8 @@ class LeagueCog(CobaltCog):
 
     async def calculate_dist(self, mmr, queue):
         mmr = str(round(mmr, -1))
-        self.lock.acquire()
-        percent = self.dist[queue][mmr]/self.dist[queue]["total"]
-        self.lock.release()
+        with self.lock:
+            percent = self.dist[queue][mmr]/self.dist[queue]["total"]
         return "top " + str(round((1 - percent) * 100, 2)) + "%"
 
     def get_dist(self):
@@ -74,9 +73,8 @@ class LeagueCog(CobaltCog):
             dist[queue]["max"] = keys[-1]
             dist[queue]["total"] = total
 
-        self.lock.acquire()
-        self.dist = dist
-        self.lock.release()
+        with self.lock:
+            self.dist = dist
 
     async def get_mmr(self, name):
         results = [[], []]

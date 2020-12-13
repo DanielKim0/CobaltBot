@@ -9,6 +9,7 @@ class PokerCog(CobaltCog):
     def __init__(self, folder):
         super().__init__()
         self.poker_dir = folder
+        self.lock = asyncio.Lock()
 
     # do by server instead of name
     @commands.command(name="create_poker")
@@ -36,3 +37,10 @@ class PokerCog(CobaltCog):
             await ctx.send("Invalid poker name: name does not exist!")
             return
         os.remove(path)
+
+    @commands.command(name="update_poker")
+    @check_valid_command
+    async def update_poker(self, ctx):
+        name = str(ctx.guild)
+        async with self.lock:
+            pass

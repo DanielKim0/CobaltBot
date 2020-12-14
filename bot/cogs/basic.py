@@ -4,11 +4,13 @@ import json
 import aiofiles
 from dotenv import load_dotenv
 from discord.ext import commands
+import asyncio
 
 class BasicCog(commands.Cog):
     def __init__(self, cog_data):
         self.cog_data = cog_data
         self.cog_dict = dict()
+        self.lock = asyncio.Lock()
 
     @commands.command(name="add_cog", description="", aliases=[], usage="")
     @commands.has_permissions(administrator=True)
@@ -35,10 +37,11 @@ class BasicCog(commands.Cog):
 
     async def save_cogs(self):
         cog_servers = dict()
-        async with aiofiles.open(self.cog_data, "w") as f:
-            for cog in self.cog_dict:
-                cog_servers[cog] = list(self.cog_dict[cog].added_servers)
-            await f.write(json.dumps(cog_servers, indent=4))
+        async with self.lock:
+            with open(self.cog_data, "w") as f:
+                for cog in self.cog_dict:
+                    cog_servers[cog] = list(self.cog_dict[cog].added_servers)
+                f.write(json.dumps(cog_servers, indent=4))
 
     def load_cogs(self):
         with open(self.cog_data, "r") as f:

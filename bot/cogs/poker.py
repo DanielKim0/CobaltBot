@@ -12,8 +12,6 @@ def check_created_game(arg):
         async def wrapper(*args, **kwargs):
             obj = args[0]
             ctx = args[1]
-            print(obj.locks)
-            print(ctx.guild.id)
             if (str(ctx.guild.id) in obj.locks) == arg:
                 return await func(*args)
             else:

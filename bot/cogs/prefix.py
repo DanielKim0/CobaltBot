@@ -4,6 +4,7 @@ import json
 import aiofiles
 from dotenv import load_dotenv
 from discord.ext import commands
+import asyncio
 
 def fetch_prefix(bot, message):
     prefixes = ["!"]
@@ -20,6 +21,7 @@ class PrefixCog(commands.Cog):
         super().__init__()
         self.data = data
         self.prefix_dict = self.load_prefix(data)
+        self.lock = asyncio.Lock()
 
     async def guild_check(self, ctx):
         if not ctx.guild:
@@ -95,5 +97,6 @@ class PrefixCog(commands.Cog):
             return data
 
     async def save_prefix(self, path):
-        async with aiofiles.open(path, "w") as f:
-            await f.write(json.dumps(self.prefix_dict, indent=4))
+        async with self.lock:
+            with open(path, "w") as f:
+                f.write(json.dumps(self.prefix_dict, indent=4))

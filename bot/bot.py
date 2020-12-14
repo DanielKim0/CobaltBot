@@ -10,6 +10,7 @@ from cogs.eu4 import EU4Cog
 from cogs.smt import SMTCog
 from cogs.league import LeagueCog
 from cogs.poker import PokerCog
+from cogs.tf2 import TF2Cog
 
 class CobaltBot(commands.Bot):
     def __init__(self, cog_data, prefix_data, eu4_data, smt_data, poker_data):
@@ -22,6 +23,7 @@ class CobaltBot(commands.Bot):
             "smt": SMTCog(smt_data[0]),
             "league": LeagueCog(),
             "poker": PokerCog(poker_data[0]),
+            "tf2": TF2Cog(),
         }
 
         self.add_cog(self.basic)

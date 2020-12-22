@@ -52,6 +52,7 @@ class TF2Cog(CobaltCog):
             message = ""
             length = 0
             for server in valid:
+                server[3] = server[3].replace("", "").replace("█", "")
                 string = "{0}({1})/{2}\t{3}\n".format(*server)
                 if length + len(string) >= 2000:
                     messages.append(message)

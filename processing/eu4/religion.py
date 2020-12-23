@@ -9,6 +9,8 @@ class EU4_Parser_Religion(EU4_Parser):
         self.denoms = dict()
 
     def process_file(self, data, filename):
+        """Method that parses religious data from a file, retrieving groups and denominations."""
+        
         for item in data:
             self.religion[item[0]] = set()
             for i in item[1:]:
@@ -17,6 +19,8 @@ class EU4_Parser_Religion(EU4_Parser):
                     self.denoms[i[0]] = item[0]
 
     def parse_folder(self, path):
+        """Wrapper that parses every file in a folder."""
+
         for filename in os.listdir(path):
             self.parse_file(os.path.join(path, filename), filename, False)
         return self.religion, self.denoms

@@ -8,6 +8,18 @@ from tabulate import tabulate
 import functools
 
 def check_created_game(arg):
+    """Decorator that checks if a game has been created for a particular server.
+
+    Needs to be a module-level function because decorators don't recognize self at class definition 
+    time, so I have to pass the self object indirectly through the inputted function instead.
+    The internal decorator is used to allow the external decorator to pass in an argument.
+    
+    Args:
+        arg (bool): whether the poker game should exist or not.
+
+    Returns:
+        function: the inputted function wrapped by functools if command is valid, else None."""
+
     def decorator(func):
         async def wrapper(*args, **kwargs):
             obj = args[0]
@@ -24,6 +36,14 @@ def check_created_game(arg):
     return decorator
 
 class PokerCog(CobaltCog):
+    """Cog that handles poker game statistic functionality.
+
+    Attributes:
+        poker_dir (str): path to a folder containing files with player amount data.
+        updates (dict): a dictionary of amount updates to be added to player totals.
+        locks (dict): a dictionary of locks, one per server ID.
+    """
+
     def __init__(self, folder):
         super().__init__()
         self.poker_dir = folder
@@ -31,6 +51,8 @@ class PokerCog(CobaltCog):
         self.locks = self.make_locks()
 
     def make_locks(self):
+        """Method that makes the lock dictionary from existing games."""
+
         locks = dict()
         for name in os.listdir(self.poker_dir):
             name = os.path.splitext(os.path.basename(name))[0]
@@ -42,6 +64,8 @@ class PokerCog(CobaltCog):
     @check_valid_command
     @check_created_game(False)
     async def create_poker(self, ctx):
+        """Method that creates a poker game in a server."""
+        
         path = os.path.join(self.poker_dir, str(ctx.guild.id) + ".json")
         if os.path.isfile(path):
             await ctx.send("Invalid poker name: name already exists!")
@@ -58,6 +82,8 @@ class PokerCog(CobaltCog):
     @check_valid_command
     @check_created_game(True)
     async def delete_poker(self, ctx):
+        """Method that removes a poker game in a server."""
+
         path = os.path.join(self.poker_dir, str(ctx.guild.id) + ".json")
         if not os.path.isfile(path):
             await ctx.send("Invalid poker name: name does not exist!")
@@ -70,12 +96,16 @@ class PokerCog(CobaltCog):
     @check_valid_command
     @check_created_game(True)
     async def money(self, ctx, name: str, amount: int):
+        """Method that updates a player's monetary total by an amount."""
+
         self.updates[name] = amount
             
     @commands.command(name="update_poker")
     @check_valid_command
     @check_created_game(True)
     async def update_poker(self, ctx):
+        """Method that updates a server's money totals."""
+
         path = os.path.join(self.poker_dir, str(ctx.guild.id) + ".json")
         async with self.locks[str(ctx.guild.id)]:
             with open(path, "r") as f:
@@ -99,6 +129,8 @@ class PokerCog(CobaltCog):
     @check_valid_command
     @check_created_game(True)
     async def undo_poker(self, ctx):
+        """Method that undos the most recent edit to a server's poker amounts."""
+
         path = os.path.join(self.poker_dir, str(ctx.guild.id) + ".json")
         async with self.locks[str(ctx.guild.id)]:
             with open(path, "r") as f:
@@ -117,6 +149,8 @@ class PokerCog(CobaltCog):
     @check_valid_command
     @check_created_game(True)
     async def balance(self, ctx):
+        """Method that fetches and displays a server's current poker balance."""
+
         path = os.path.join(self.poker_dir, str(ctx.guild.id) + ".json")
         async with self.locks[str(ctx.guild.id)]:
             with open(path, "r") as f:

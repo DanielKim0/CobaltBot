@@ -11,6 +11,17 @@ from tabulate import tabulate
 import functools
 
 def check_valid_game(func):
+    """Decorator that checks if a particular game inputted as a command argument is valid.
+
+    Needs to be a module-level function because decorators don't recognize self at class definition 
+    time, so I have to pass the self object indirectly through the inputted function instead.
+
+    Args:
+        func (function): the function inputted through the decorator.
+
+    Returns:
+        function: the inputted function wrapped by functools if command is valid, else None."""
+
     @functools.wraps(func)
     async def wrapper(*args):
         obj = args[0]
@@ -27,6 +38,13 @@ def check_valid_game(func):
     return wrapper
 
 class SMTCog(CobaltCog):
+    """Cog that handles smt functionality.
+
+    Attributes:
+        data (str): path to results folder from processing.
+        games (list): list of valid game names.
+        names (list): dictionary of games to list of valid demon names."""
+
     def __init__(self, data):
         super().__init__()
         self.data = data
@@ -34,6 +52,8 @@ class SMTCog(CobaltCog):
         self.names = self.get_names()
 
     def get_names(self):
+        """Method that fetches the names of demons from json name files in self.data."""
+
         names = dict()
         for game in self.games:
             with open(os.path.join(self.data, game, "demon_names.json"), "r") as f:
@@ -41,12 +61,16 @@ class SMTCog(CobaltCog):
         return names
 
     async def get_demon(self, ctx, game: str, name: str):
+        """Wrapper that checks to see if a demon name is valid for a particular game."""
+
         name = await self.nearest_spelling(ctx, name.lower(), self.names[game])
         if name is not None:
             name = " ".join([i.capitalize() for i in name.split()])
         return name
 
     async def stat_table(self, data):
+        """Method that inputs the data of a particular demon and formats it into discord messages."""
+
         table = ""
         table += tabulate([data["stats"][1]], data["stats"][0], tablefmt="grid") + "\n"
         table += tabulate([data["resist"][1]], data["resist"][0], tablefmt="grid") + "\n"
@@ -72,6 +96,8 @@ class SMTCog(CobaltCog):
     @check_valid_command
     @check_valid_game
     async def get_stats(self, ctx, game: str, name: str):
+        """Method that fetches a demon's stats and displays it in discord."""
+
         string = await self.get_demon(ctx, game, name)
         if string is not None:
             async with aiofiles.open(os.path.join(self.data, game, "demons", string + ".json"), "r") as f:
@@ -84,7 +110,8 @@ class SMTCog(CobaltCog):
     @check_valid_command
     @check_valid_game
     async def get_fusion(self, ctx, game: str, demon1: str, demon2: str):
-        # Given 1 and 2, get X where 1 ! 2 = X
+        """Method that given demons 1 and 2, gets X where 1 + 2 = X."""
+
         demon1 = await self.get_demon(ctx, game, demon1)
         demon2 = await self.get_demon(ctx, game, demon2)
         if demon1 is not None and demon2 is not None:
@@ -101,7 +128,8 @@ class SMTCog(CobaltCog):
     @check_valid_command
     @check_valid_game
     async def get_fission(self, ctx, game: str, demon1: str, demon2: str):
-        # Given 1 and 2, get all X where 1 ! X = 2
+        """Method that given demons 1 and 2, gets all X where 1 + X = 2."""
+        
         demon1 = await self.get_demon(ctx, game, demon1)
         demon2 = await self.get_demon(ctx, game, demon2)
         if demon1 is not None and demon2 is not None:

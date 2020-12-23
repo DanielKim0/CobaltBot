@@ -5,7 +5,18 @@ from utils import *
 from collections import defaultdict
 
 class SMT_Demon_Parser:
+    """Class that handles parsing website data for SMT demons.
+
+    Attributes:
+        url (str): the main url to the website.
+        game (str): the game whose data this parser is parsing.
+        persona (bool): whether this game is a Persona game or not.
+        session (HTMLSession): websession for making requests.
+        results (str): path to the folder containing the resulting parsed data."""
+    
     def __init__(self, game, results):
+        """Method that creates the necessary folders and initializes variables."""
+
         self.url = "https://aqiu384.github.io/megaten-fusion-tool/"
         self.game = game
         self.persona = self.game == "mib" or self.game[0] == "p"
@@ -17,6 +28,8 @@ class SMT_Demon_Parser:
         create_folder(os.path.join(self.results, "fissions"))
 
     def render_html(self, link, script=None):
+        """Wrapper that renders the HTML of a link, possibly running a JS script."""
+
         res = self.session.get(link)
         if script:
             res.html.render(script=script)
@@ -25,6 +38,8 @@ class SMT_Demon_Parser:
         return res
 
     def extract_evolutions(self, res):
+        """Method that extracts evolution data from a demon's stats page."""
+
         data = res.html.find("app-fusion-entry-table")
         result = [[], []]
 
@@ -37,6 +52,8 @@ class SMT_Demon_Parser:
         return result
 
     def extract_table_text(self, res, cla):
+        """Method that extracts all text from a table, given the class of the tag it's wrapped around."""
+
         data = res.html.find(cla)
         if not data:
             return
@@ -44,6 +61,8 @@ class SMT_Demon_Parser:
                 [item.text for item in data[0].find("td")]]
 
     def parse_demon_list(self):
+        """Method that fetches links to each individual demon's stats page."""
+
         if self.persona:
             describer = "personas"
         else:
@@ -55,6 +74,8 @@ class SMT_Demon_Parser:
         return [[item.find("td")[2].text, self.url + self.game + "/" + describer + "/" + item.find("td")[2].text] for item in found]
 
     def get_demon_stats(self, res, name):
+        """Method that fetches a given demon's base stats and processes them."""
+
         stats = [[], []]
         data = [item.text for item in res.html.find("app-demon-stats")[0].find("thead")[0].find("tr")[0].find("th")][0].split()
         
@@ -78,6 +99,8 @@ class SMT_Demon_Parser:
         return stats
 
     def get_demon_info(self, link, name):
+        """Method that gets all of the info about a demon and processes it."""
+
         res = self.render_html(link)
         stats = self.get_demon_stats(res, name)
         resists = self.extract_table_text(res, "app-demon-resists")
@@ -93,6 +116,8 @@ class SMT_Demon_Parser:
         return results
 
     def get_demon_fissions(self, link):
+        """Method that fetches a particular demon's fissions from its page and parses them."""
+
         data = []
         script = """
             () => {
@@ -122,6 +147,8 @@ class SMT_Demon_Parser:
         return {"fissions": fissions, "special": special}
 
     def get_demon_fusions(self, link):
+        """Method that fetches a particular demon's fusions from its page and parses them."""
+
         data = []
         res = self.render_html(link)
         trs = res.html.find("app-smt-fusions")[0].find("tbody")[-1].find("tr")
@@ -136,6 +163,8 @@ class SMT_Demon_Parser:
         return fusions
 
     def main(self):
+        """Main method that fetches, parses, and stores data on all demons from a game."""
+
         links = self.parse_demon_list()
         names = []
         for link in links:

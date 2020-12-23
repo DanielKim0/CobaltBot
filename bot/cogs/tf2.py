@@ -9,6 +9,18 @@ from multiprocessing import Pool
 import time
 
 def lookup_address(address):
+    """Function that looks up and fetches data from a particular address.
+    
+    Must be a module-level function, as class methods are not picklable and are therefore
+    disallowed from being used in multiprocessing.
+    
+    Args:
+        address (str): the address that is to be looked up.
+
+    Returns:
+        list: contains various pieces of data about the server corresponding to the address, else None.
+    """
+
     try:
         with valve.source.a2s.ServerQuerier(address, timeout=.5) as server:
             info = server.info()
@@ -20,7 +32,9 @@ class TF2Cog(CobaltCog):
     def __init__(self):
         super().__init__()
 
-    def get_servers(self, region):        
+    def get_servers(self, region):
+        """Method that fetches all of the server statistics for a given region."""
+
         with valve.source.master_server.MasterServerQuerier(timeout=1) as msq:
             servers = [x for x in msq.find(gamedir="tf", region=region, empty=False)]
             with Pool() as p:
@@ -30,6 +44,10 @@ class TF2Cog(CobaltCog):
     @commands.command(name="tf2", description="", aliases=[], usage="")
     @check_valid_command
     async def tf2(self, ctx, players: int, region: str=""):
+        """Wrapper that fetches tf2 server data and then displays it in discord.
+        
+        Also displays various error messages in certain cases.s"""
+
         if not region:
             region = "na"
         if region not in ["na-east", "na-west", "na", "sa", "eu", "as", "oc", "af", "rest", "all"]:

@@ -6,16 +6,22 @@ from abc import ABC, abstractmethod
 from utils import *
 
 class EU4_Parser:
+    """Parent class to the more specialized EU4 data parsers."""
+
     def __init__(self):
         pass
 
     def parse_folder(self, path):
+        """Wrapper that parses every file in a folder."""
+
         data = []
         for filename in os.listdir(path):
             data.append(self.parse_file(os.path.join(path, filename), filename))
         return data
 
     def parse_file(self, path, filename, return_dict=True):
+        """Wrapper that chooses a parsing function depending on file layout."""
+
         with codecs.open(path, "r", encoding="iso-8859-1") as f:
             lines = f.readlines()
             cleaned = self.clean_data(lines)
@@ -44,6 +50,8 @@ class EU4_Parser:
         return False
 
     def merge_lines(self, curr, new):
+        """Method that merges multiple-line data blocks together."""
+
         if len(new) > 2 or new[0] != "NOT:":
             add = []
             for i in range(len(new)):
@@ -74,6 +82,8 @@ class EU4_Parser:
         return line
 
     def clean_data(self, lines):
+        """Method that cleans and parses raw file data for further processing."""
+
         data = []
         curr = None
         for line in lines:
@@ -104,6 +114,8 @@ class EU4_Parser:
         return data
 
     def clean_line(self, line):
+        """Method that removes extraneous characters from a given line."""
+
         if "#" in line:
             temp = line.split("#")
             if len(temp) < 2:
@@ -135,6 +147,8 @@ class EU4_Parser:
         return line[:left+1] + ": " + line[right:]
 
     def create_dict(self, data):
+        """Method that creates a data storage dict from the data found in a file."""
+
         for i in range(len(data)):
             for j in range(len(data[i])):
                 if i+1 < len(data) and ":" in data[i][j] and "}" not in data[i] and "{" not in data[i] and data[i+1][0] == "{":
@@ -162,6 +176,8 @@ class EU4_Parser:
         return result
 
     def separate(self, lines):
+        """Method that separates data blocks from each other."""
+
         seps = []
         curr = ""
         left = 0
@@ -185,6 +201,8 @@ class EU4_Parser:
         return seps
 
     def create_list(self, data):
+        """Method that parses raw list-formatted data."""
+
         temp = []
         for item in data:
             if len(item) > 2:

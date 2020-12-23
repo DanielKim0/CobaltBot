@@ -7,6 +7,8 @@ class EU4_Flag_Converter:
         pass
 
     def process_flags(self, images, results):
+        """Method that converts flag data to png format."""
+
         create_folder(results)
         for filename in os.listdir(images):
             in_file = os.path.join(images, filename)

@@ -22,11 +22,15 @@ class EU4_Parser_Province(EU4_Parser):
         }
 
     def process_file(self, data, filename):
+        """Wrapper function that processes a file's data if its data exists."""
+
         if data:
             data = self.update_province_info(data)
             self.get_province_info(data, filename)
     
     def get_province_info(self, data, filename):
+        """Method that adds a"""
+
         number, name = self.split_file_name(filename)
         number = int(number)
 
@@ -46,6 +50,8 @@ class EU4_Parser_Province(EU4_Parser):
         self.name_dict[number] = name
 
     def update_province_info(self, data):
+        """Method that applies the changes found in a province's history file until the start date."""
+
         prov = {data[i][0]: data[i][1] for i in range(len(data))}
 
         data = transpose(data)
@@ -71,6 +77,8 @@ class EU4_Parser_Province(EU4_Parser):
         return prov
 
     def parse_folder(self, path):
+        """Wrapper that parses every file in a folder."""
+
         for filename in os.listdir(path):
             self.parse_file(os.path.join(path, filename), filename)
         return self.country_dict, self.hre_dict, self.name_dict

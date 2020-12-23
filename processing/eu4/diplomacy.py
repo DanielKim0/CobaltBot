@@ -12,7 +12,9 @@ class EU4_Parser_Diplomacy(EU4_Parser):
         self.relations = dict()
 
     def add_tag(self, tag):
-        # tag is the blank of everything in the list
+        """Method that adds a given tag with format to the self.relations dict."""
+
+        # directional relation: tag is the blank of everything in the list
         self.relations[tag] = {
             "overlord": [],
             "hegemon": [], # for tributary
@@ -27,6 +29,8 @@ class EU4_Parser_Diplomacy(EU4_Parser):
         }
 
     def process_file(self, data, filename):
+        """Method that processes an entire file and saves diplomatic data on tags."""
+
         for relation in data:
             if "start_date" in relation[1]:
                 start = convert_to_date(relation[1]["start_date"])
@@ -60,6 +64,8 @@ class EU4_Parser_Diplomacy(EU4_Parser):
                         self.relations[second]["marriage"].append(first)
 
     def parse_folder(self, path):
+        """Wrapper that parses every file in a folder."""
+
         for filename in os.listdir(path):
             self.parse_file(os.path.join(path, filename), filename)
         return self.relations

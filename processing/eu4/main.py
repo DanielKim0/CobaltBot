@@ -13,7 +13,11 @@ from copy import copy
 from flag import EU4_Flag_Converter
 
 class EU4_Main:
+    """Class that handles the bulk of processing and converting EU4 data."""
+
     def __init__(self, results = "results"):
+        """Method that initializes by calling all other parsers with requisite input data paths."""
+        
         self.results = results
         country = EU4_Parser_Country()
         province = EU4_Parser_Province()
@@ -42,6 +46,8 @@ class EU4_Main:
         self.country_names = dict()
 
     def fetch_country_names(self, data):
+        """Method that fetches country names, parses them, and then returns their tag mappings."""
+
         for tag in self.country_data:
             data[tag.lower()] = tag
             country = self.country_data[tag]["country"].lower()
@@ -75,6 +81,8 @@ class EU4_Main:
         return data
 
     def fetch_idea_names(self, data):
+        """Method that fetches and parses idea group names, and then returns internal file mappings."""
+
         for idea in self.basic_ideas:
             data[idea.split("_")[0]] = idea
             data[idea.replace("_", " ")] = idea
@@ -99,6 +107,8 @@ class EU4_Main:
             json.dump(data, f, ensure_ascii=False, indent=4)
 
     def process_country_names(self):
+        """Method that processes internal country names to reflect their actual/common names."""
+
         # Hardcode discrepancies between country name and in-code country representation here
         self.country_data["KHA"]["country"] = "Mongolia"
 
@@ -114,6 +124,8 @@ class EU4_Main:
         self.country_names = {tag: self.country_data[tag]["country"] for tag in self.country_data}
 
     def process_data(self):
+        """Method that processes raw data that needs processing to the main data storage dict."""
+
         colonial_continents = ["north_america", "south_america", "australia"]
         
         for tag in self.tag_list:
@@ -159,6 +171,8 @@ class EU4_Main:
                 self.country_data[tag].update(self.diplo_data[tag])
 
     def clean_data(self):
+        """Method that cleans self.country_data from unused tags and defunct data."""
+
         self.country_data.pop("REB")
         self.country_data.pop("NAT")
         self.country_data.pop("PIR")
@@ -184,6 +198,8 @@ class EU4_Main:
                 self.country_data[tag].pop(key)
 
     def parse_variable_idea_value(self, data):
+        """Method that parses both the names and values of individual idea effects."""
+
         final = []
         do_not_multiply = ["republican_tradition", "inflation_reduction", "yearly_corruption", 
             "army_tradition", "navy_tradition", "monthly_fervor_increase", "global_autonomy", 
@@ -209,6 +225,8 @@ class EU4_Main:
         return final
 
     def parse_variable_idea(self, name, data):
+        """Wrapper that parses ideas into readable format."""
+
         if name in ["tradition", "ambition"]:
             field = name.capitalize()
         else:
@@ -224,6 +242,8 @@ class EU4_Main:
         return "Total Development", message
 
     def parse_culture(self, data):
+        """Method that parses a tag's culture data."""
+
         if "primary_culture" not in data:
             return [], []
         message = ""
@@ -235,6 +255,8 @@ class EU4_Main:
         return "Culture", message[:-1]
 
     def parse_capital(self, data):
+        """Method that parses a tag's geographic data."""
+
         message = "Capital: " + str(data["capital"]) + " (" + data["capital_name"] + ")\n"
         message += "Region: " + self.parse_variable_helper(data["region"], ["region"]) + "\n"
         message += "Area: " + self.parse_variable_helper(data["area"], ["area"]) + "\n"
@@ -242,6 +264,8 @@ class EU4_Main:
         return "Capital", message
 
     def parse_religion(self, data):
+        """Method that parses a tag's religious data."""
+
         if "religion" not in data:
             return [], []
         if data["religion"] == "buddhism":
@@ -258,6 +282,8 @@ class EU4_Main:
         return "Religion", message[:-1]
 
     def parse_government(self, data):
+        """Method that parses a tag's governmental data."""
+
         ranks = ["Duchy", "Kingdom", "Empire"]
         message = "Government Type: " + self.parse_variable_helper(data["government"]) + "\n"
         if "add_government_reform" in data:
@@ -271,6 +297,8 @@ class EU4_Main:
         return "Government", message[:-1]
 
     def parse_leader_short(self, key, data):
+        """Method that parses a tag's current leader stats."""
+
         if key not in data:
             return [], []
         data[key] = {k.lower(): v for k, v in data[key].items()}
@@ -279,6 +307,8 @@ class EU4_Main:
         return field, message
     
     def parse_leader_full(self, key, data):
+        """Method that parses all the data available to a tag's leader."""
+
         if key not in data:
             return [], []
         field, message = self.parse_leader_short(key, data)
@@ -298,6 +328,8 @@ class EU4_Main:
         return field, message[:-1]
 
     def parse_variable_helper(self, item, prefix_suffix = []):
+        """Helper that formats individual tag variables."""
+
         if len(item) == 3 and item.isupper():
             if item not in ["ADM", "DIP", "MIL"]:
                 return item + " (" + self.country_names[item] + ")"
@@ -315,6 +347,8 @@ class EU4_Main:
         return ", ".join(result)
 
     def parse_variable(self, key, data):
+        """Method that parses individual tag variables."""
+
         if key not in data:
             return [], []
         key_fluff = ["reform", "dev", "add", "set"]
@@ -328,6 +362,8 @@ class EU4_Main:
         return result_key, result_text
 
     def add_parse(self, result, embed):
+        """Method that adds a parsing function's results to a discord embed."""
+
         if result[0] and result[1]:
             if type(result[0]) == list:
                 embed["fields"].extend(result[0])
@@ -337,6 +373,8 @@ class EU4_Main:
                 embed["messages"].append(result[1])
 
     def format_basic_idea(self, data):
+        """Method that parses a tag's idea data and returns an embed."""
+
         embed = {"title": "", "fields": [], "messages": []}
         embed["title"] = self.parse_variable_helper(data[0])
         self.add_parse((self.parse_variable_helper(data[1][0]), self.parse_variable_helper(data[1][1])), embed)
@@ -352,6 +390,8 @@ class EU4_Main:
         return embed
 
     def format_idea(self, data):
+        """Method that formats idea data for use in discord embeds."""
+
         embed = {"title": "", "fields": [], "messages": [], "image_path": ""}
         embed["title"] = data["tag"] + ": " + data["country"]
         if "tradition" in data:
@@ -367,6 +407,8 @@ class EU4_Main:
         return embed
 
     def format_important(self, data, embed):
+        """Method that parses a tag's important data and returns an embed."""
+
         dependencies = ["vassal", "overlord", "tributary", "hegemon", "guaranteeing", 
                         "guarantor", "junior", "senior", "alliance"]
         self.add_parse(self.parse_leader_short("monarch", data), embed)
@@ -377,6 +419,8 @@ class EU4_Main:
         return self.add_present(data, embed)
         
     def format_full(self, data, embed):
+        """Method that parses a tag's full data and returns an embed."""
+
         if "Monarch Stats" in embed["fields"]:
             ind = embed["fields"].index("Monarch Stats")
             embed["fields"].pop(ind)
@@ -395,6 +439,8 @@ class EU4_Main:
         return self.add_present(data, embed)
 
     def add_present(self, data, embed):
+        """Method that adds if a tag is present in the start date to an embed."""
+
         if "present" not in data or data["present"] != True:
             self.add_parse(("Present in 1444", "No"), embed)
             if "Monarch Stats" in embed["fields"]:
@@ -406,6 +452,8 @@ class EU4_Main:
         return embed
 
     def write_data(self):
+        """Method that writes all embed data in json files to be loaded and used by discord bot."""
+
         create_folder(self.results)
         create_folder(os.path.join(self.results, "ideas"))
         create_folder(os.path.join(self.results, "important"))
@@ -433,6 +481,8 @@ class EU4_Main:
                 json.dump(self.format_basic_idea(self.basic_ideas[idea]), f)
 
     def add_idea(self, idea, tag):
+        """Wrapper that adds an individual idea's data to the existing idea group data."""
+
         idea_num = 0
         for item in idea[1:]:
             if item[0] in ["trigger"]:
@@ -458,6 +508,8 @@ class EU4_Main:
             self.parse_condition_tag(condition[1], idea)
 
     def verify_condition(self, condition, idea, tag):
+        """Method that verifies if a particular idea's formatted condition is true for a tag."""
+
         if condition[0] not in ["OR", "NOT", "AND"] and type(condition[1]) == list:
             condition = condition[1]
 
@@ -493,6 +545,8 @@ class EU4_Main:
             self.tags_without_ideas.remove(tag)
 
     def assign_ideas(self):
+        """Method that assigns ideas to tags."""
+
         tags = set()
         group_ideas = []
         for tag in ["MGE", "SCA", "NAT", "PIR", "REB"]:

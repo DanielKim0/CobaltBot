@@ -13,10 +13,17 @@ import sys
 import cassiopeia as cass
 
 class LeagueCog(CobaltCog):
+    """Cog that handles league functionality.
+
+    Attributes:
+        header (dict): json header to make to WhatIsMyMMR calls.
+        lock (threading.Lock): lock to protect against race conditions when saving mmr dist data.
+        champs (dict): maps cass champ ids to their names."""
+
     def __init__(self):
         super().__init__()
         load_dotenv()
-        self.header = {"User-Agent": "Linux Mint:CobaltBot:v0.0.1"}
+        self.header = {"User-Agent": "Raspberry Pi 4:CobaltBot:v1.0.0"}
         self.lock = Lock()
         self.get_dist()
         self.cass_setup()
@@ -24,6 +31,7 @@ class LeagueCog(CobaltCog):
         self.champs = self.champ_setup()
 
     def champ_setup(self):
+        """Method that fetches champions and their IDs using cass."""
         champs = dict()
         for champ in cass.get_champions():
             champs[champ.id] = champ.name
@@ -34,6 +42,8 @@ class LeagueCog(CobaltCog):
         cass.set_default_region("NA")
 
     def call_repeatedly(self):
+        """Wrapper that calls get_dist every hour."""
+
         stopped = Event()
 
         def loop(self):
@@ -45,12 +55,16 @@ class LeagueCog(CobaltCog):
         return stopped.set
 
     async def calculate_dist(self, mmr, queue):
+        """Method that calculates your place in a given queue's MMR distribution."""
+
         mmr = str(round(mmr, -1))
         with self.lock:
             percent = self.dist[queue][mmr]/self.dist[queue]["total"]
         return "top " + str(round((1 - percent) * 100, 2)) + "%"
 
     def get_dist(self):
+        """Method that fetches and stores league MMR distribution data."""
+
         sys.stdout.flush()
         website = "https://na.whatismymmr.com/api/v1/distribution"
         req = requests.get(website, headers=self.header)
@@ -77,6 +91,8 @@ class LeagueCog(CobaltCog):
             self.dist = dist
 
     async def get_mmr(self, name):
+        """Method that requests data from WhatIsMyMMR and parses it into a usable format."""
+
         results = [[], []]
         name = name.replace(" ", "+")
         req = requests.get("https://na.whatismymmr.com/api/v1/summoner?name=" + name, headers=self.header)
@@ -106,6 +122,8 @@ class LeagueCog(CobaltCog):
         return results, warn
 
     async def get_cass(self, player):
+        """Method that requests summoner data from cass and parses it into a usable format."""
+
         summ = [["Level", "Solo Rank", "Flex Rank"], []]
         summ[1].append(player.level)
 
@@ -132,6 +150,8 @@ class LeagueCog(CobaltCog):
                     return p
 
     async def get_last_match(self, player):
+        """Method that requests last match data from cass and parses it into a usable format."""
+
         data = [["Queue", "Champ", "KDA", "CS", "Vision"], []]
         summ = None
         num = 0
@@ -155,6 +175,8 @@ class LeagueCog(CobaltCog):
     @commands.command(name="league", description="", aliases=[], usage="")
     @check_valid_command
     async def get_stats(self, ctx, name: str):
+        """Method that gets a summoner's statistics, makes them into tables, and sends them on discord."""
+
         player = cass.get_summoner(name=name)
         names = ["User Data", "Champion Data", "MMR Data"]
         results = []
@@ -177,6 +199,3 @@ class LeagueCog(CobaltCog):
         table += "```"
 
         await ctx.send(table)
-
-    def get_info(self, name):
-        pass

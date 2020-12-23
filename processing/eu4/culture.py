@@ -9,6 +9,8 @@ class EU4_Parser_Culture:
         self.primary = set()
 
     def parse_file(self, path):
+        """Method that fetches data from a file and stores it in the class data."""
+
         with codecs.open(path, "r", encoding="iso-8859-1") as f:
             lines = f.readlines()
             curr = None
@@ -38,6 +40,8 @@ class EU4_Parser_Culture:
                         
 
     def parse_folder(self, path):
+        """Wrapper that parses every file in a folder."""
+
         for filename in os.listdir(path):
             self.parse_file(os.path.join(path, filename))
         return self.cultures, self.subcultures, self.primary

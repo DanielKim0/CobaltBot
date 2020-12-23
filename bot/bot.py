@@ -13,7 +13,21 @@ from cogs.poker import PokerCog
 from cogs.tf2 import TF2Cog
 
 class CobaltBot(commands.Bot):
+    """Class that represents the actual discord bot itself, and handles all of its functionality.
+
+    Attributes:
+        prefix (PrefixCog): cog that handles all the bot's prefixes. Many-to-one.
+        basic (BasicCog): cog that handles the bot's cog permissions. Many-to-one.
+        token (string): the discord bot's token, what connects this code to an actual application."""
+
     def __init__(self, cog_data, prefix_data, eu4_data, smt_data, poker_data):
+        """Method that initializes the bot and loads up all of the bot's cogs.
+
+        Args:
+            cog_data (string): path to a file containing cog permissions.
+            prefix_data (string): path to a file containing set server prefixes.
+            other args (list): Various arguments used to initialize the rest of the cogs."""
+
         super().__init__(command_prefix=fetch_prefix)
         self.prefix = PrefixCog(prefix_data)
         self.basic = BasicCog(cog_data)
@@ -34,20 +48,23 @@ class CobaltBot(commands.Bot):
         load_dotenv()
         self.token = os.getenv('DISCORD_TOKEN')
 
-    async def on_ready(self):
-        serv = os.getenv('DISCORD_SERVER')
-        server = discord.utils.get(self.guilds, name=serv)
+    # async def on_ready(self):
+    #     serv = os.getenv('DISCORD_SERVER')
+    #     server = discord.utils.get(self.guilds, name=serv)
 
-        print(
-            f'{self.user} is connected to the following server:\n'
-            f'{server.name}(id: {server.id})'
-        )
+    #     print(
+    #         f'{self.user} is connected to the following server:\n'
+    #         f'{server.name}(id: {server.id})'
+    #     )
 
     async def on_error(self, event, *args, **kwargs):
+        """Simple error function that logs errors and raises all but unhandled messages."""
+
         with open('err.log', 'a') as f:
             if event == 'on_message':
                 f.write(f'Unhandled message: {args[0]}\n')
             else:
+                f.write(f'Error: {args[0]}\n')
                 raise
 
     def run(self):

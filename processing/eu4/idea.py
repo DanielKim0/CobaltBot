@@ -11,6 +11,8 @@ class EU4_Parser_Idea(EU4_Parser):
         self.idea_dict = dict()
 
     def process_file(self, data, filename):
+        """Method that processes an idea file and parses idea data, including requirements, from that file."""
+        
         for idea in data:
             if ["free", "yes"] in idea:
                 idea.remove(["free", "yes"])

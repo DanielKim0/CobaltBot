@@ -11,6 +11,8 @@ class EU4_Parser_Country(EU4_Parser):
         super().__init__()
 
     def parse_folder(self, path):
+        """Method inherited from abstract function in parent class."""
+
         data = dict()
         for filename in os.listdir(path):
             country = self.parse_file(os.path.join(path, filename), filename)
@@ -18,6 +20,8 @@ class EU4_Parser_Country(EU4_Parser):
         return data
 
     def process_file(self, data, filename):
+        """Method that processes a file's data and returns parsed and processed data."""
+
         result = []
         data = transpose(data)
         names = data[0]
@@ -39,6 +43,8 @@ class EU4_Parser_Country(EU4_Parser):
         return info
 
     def apply_country_changes(self, names, data, info):
+        """Method that applies the changes found in a tag's history file until the start date to tag data."""
+
         for i in range(len(names)):
             date = convert_to_date(names[i])
             if date > START_DATE:
@@ -52,6 +58,8 @@ class EU4_Parser_Country(EU4_Parser):
         return info
 
     def get_country_info(self, names, data, filename):
+        """Method that converts the inputted list data into a dictionary, and adds some metadata."""
+
         data = {names[i]: data[i] for i in range(len(data))}
         tag, country = self.split_file_name(filename)
         data["tag"] = tag
@@ -59,6 +67,8 @@ class EU4_Parser_Country(EU4_Parser):
         return data
         
     def get_current_rulers(self, names, data):
+        """Method that fetches data on the current rulers of a tag."""
+
         monarch = None
         heir = None
         consort = None

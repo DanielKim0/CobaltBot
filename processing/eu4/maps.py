@@ -11,6 +11,8 @@ class EU4_Parser_Map:
         self.area = dict()
 
     def parse_file(self, path):
+        """Method that parses a map file and retrieves region and area data from it."""
+
         with codecs.open(path, "r", encoding="iso-8859-1") as f:
             lines = f.readlines()
             convert = []

@@ -172,7 +172,7 @@ class LeagueCog(CobaltCog):
         data[1].append(stats.vision_score)
         return data
 
-    @commands.command(name="league", description="", aliases=[], usage="")
+    @commands.command(name="league", help="Fetches information about a summoner in League of Legends.")
     @check_valid_command
     async def get_stats(self, ctx, name: str):
         """Method that gets a summoner's statistics, makes them into tables, and sends them on discord."""

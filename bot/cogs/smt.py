@@ -45,7 +45,7 @@ class SMTCog(CobaltCog):
         games (list): list of valid game names.
         names (list): dictionary of games to list of valid demon names."""
 
-    def __init__(self, data):
+    def __init__(self, data, help=""):
         super().__init__()
         self.data = data
         self.games = [f.name for f in os.scandir(data) if f.is_dir()]
@@ -92,7 +92,7 @@ class SMTCog(CobaltCog):
             results.append("```\n" + skill + "\n```")
         return results
 
-    @commands.command(name="demon", description="", aliases=[], usage="")
+    @commands.command(name="demon", help="Fetches a demon's stats and displays it in discord.")
     @check_valid_command
     @check_valid_game
     async def get_stats(self, ctx, game: str, name: str):
@@ -106,7 +106,7 @@ class SMTCog(CobaltCog):
             for item in await self.stat_table(data):
                 await ctx.send(item)
 
-    @commands.command(name="fusion", description="", aliases=[], usage="")
+    @commands.command(name="fusion", help="Given demons 1 and 2, gets X where 1 + 2 = X.")
     @check_valid_command
     @check_valid_game
     async def get_fusion(self, ctx, game: str, demon1: str, demon2: str):
@@ -124,7 +124,7 @@ class SMTCog(CobaltCog):
                 msg = "Invalid fusion!"
             await ctx.send(msg)
 
-    @commands.command(name="fission", description="", aliases=[], usage="")
+    @commands.command(name="fission", help="Given demons 1 and 2, gets all X where 1 + X = 2.")
     @check_valid_command
     @check_valid_game
     async def get_fission(self, ctx, game: str, demon1: str, demon2: str):

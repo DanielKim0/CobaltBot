@@ -24,7 +24,7 @@ class EU4Cog(CobaltCog):
         self.impor_data = impor_data
         self.idea_data = idea_data
 
-    @commands.command(name="eu4", description="", aliases=[], usage="")
+    @commands.command(name="eu4", help="Fetches data about an eu4 tag.")
     @check_valid_command
     async def fetch_data(self, ctx, string: str, full_data: str=""):
         """Method that fetches tag data from the requisite file and displays it as an embed."""

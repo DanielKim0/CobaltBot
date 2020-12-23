@@ -18,8 +18,7 @@ def lookup_address(address):
         address (str): the address that is to be looked up.
 
     Returns:
-        list: contains various pieces of data about the server corresponding to the address, else None.
-    """
+        list: contains various pieces of data about the server corresponding to the address, else None."""
 
     try:
         with valve.source.a2s.ServerQuerier(address, timeout=.5) as server:
@@ -41,12 +40,12 @@ class TF2Cog(CobaltCog):
                 stats = p.map(lookup_address, servers)
                 return stats
 
-    @commands.command(name="tf2", description="", aliases=[], usage="")
+    @commands.command(name="tf2", help="Fetches tf2 server data with players at or above a number and then displays it.")
     @check_valid_command
     async def tf2(self, ctx, players: int, region: str=""):
         """Wrapper that fetches tf2 server data and then displays it in discord.
         
-        Also displays various error messages in certain cases.s"""
+        Also displays various error messages in certain cases."""
 
         if not region:
             region = "na"

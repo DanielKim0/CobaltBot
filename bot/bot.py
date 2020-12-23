@@ -17,7 +17,7 @@ class CobaltBot(commands.Bot):
 
     Attributes:
         prefix (PrefixCog): cog that handles all the bot's prefixes. Many-to-one.
-        basic (BasicCog): cog that handles the bot's cog permissions. Many-to-one.
+        basic (BasicCog): cog that handles the bot's cog permissions and basic functions. One-to-one.
         token (string): the discord bot's token, what connects this code to an actual application."""
 
     def __init__(self, cog_data, prefix_data, eu4_data, smt_data, poker_data):
@@ -29,8 +29,10 @@ class CobaltBot(commands.Bot):
             other args (list): Various arguments used to initialize the rest of the cogs."""
 
         super().__init__(command_prefix=fetch_prefix)
+        self.remove_command("help")
+        
         self.prefix = PrefixCog(prefix_data)
-        self.basic = BasicCog(cog_data)
+        self.basic = BasicCog(self, cog_data)
         self.add_cog(self.prefix) # not included in cogs, valid for all servers
         self.basic.cog_dict = {
             "eu4": EU4Cog(eu4_data[0], eu4_data[1], eu4_data[2], eu4_data[3]),

@@ -59,7 +59,7 @@ class PokerCog(CobaltCog):
             locks[name] = asyncio.Lock()
         return locks
 
-    @commands.command(name="create_poker")
+    @commands.command(name="create_poker", help="Creates a poker game in a server.")
     @check_valid_command
     @check_created_game(False)
     async def create_poker(self, ctx):
@@ -78,11 +78,11 @@ class PokerCog(CobaltCog):
                 data["balances"] = dict()
                 json.dump(data, f)
 
-    @commands.command(name="delete_poker")
+    @commands.command(name="delete_poker", help="Removes a poker game from a server.")
     @check_valid_command
     @check_created_game(True)
     async def delete_poker(self, ctx):
-        """Method that removes a poker game in a server."""
+        """Method that removes a poker game from a server."""
 
         path = os.path.join(self.poker_dir, str(ctx.guild.id) + ".json")
         if not os.path.isfile(path):
@@ -93,7 +93,7 @@ class PokerCog(CobaltCog):
             os.remove(path)
         self.locks.pop(str(ctx.guild.id))
 
-    @commands.command(name="money")
+    @commands.command(name="money", help="Updates a player's monetary total by an amount.")
     @check_valid_command
     async def money(self, ctx, name: str, amount: int):
         """Method that updates a player's monetary total by an amount."""
@@ -102,7 +102,7 @@ class PokerCog(CobaltCog):
             self.updates[str(ctx.guild.id)] = dict()
         self.updates[str(ctx.guild.id)][name] = amount
             
-    @commands.command(name="update_poker")
+    @commands.command(name="update_poker", help="Updates a server's money totals.")
     @check_valid_command
     @check_created_game(True)
     async def update_poker(self, ctx):
@@ -127,7 +127,7 @@ class PokerCog(CobaltCog):
                 data["rounds"] += 1
                 json.dump(data, f)
 
-    @commands.command(name="undo_poker")
+    @commands.command(name="undo_poker", help="Undos the most recent edit to a server's poker amounts.")
     @check_valid_command
     @check_created_game(True)
     async def undo_poker(self, ctx):
@@ -147,7 +147,7 @@ class PokerCog(CobaltCog):
                 data["rounds"] -= 1
                 json.dump(data, f)
 
-    @commands.command(name="balance")
+    @commands.command(name="balance", help="Fetches and displays a server's current poker balance.")
     @check_valid_command
     @check_created_game(True)
     async def balance(self, ctx):
@@ -170,7 +170,7 @@ class PokerCog(CobaltCog):
                 message += "\n```"
                 await ctx.send(message)
 
-    @commands.command(name="changes")
+    @commands.command(name="changes", help="Fetches and displays a server's current staged poker changes.")
     @check_valid_command
     @check_created_game(True)
     async def changes(self, ctx):

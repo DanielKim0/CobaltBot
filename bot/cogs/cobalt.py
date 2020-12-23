@@ -18,7 +18,7 @@ def check_valid_command(func):
         function: the inputted function wrapped by functools if command is valid, else None."""
 
     @functools.wraps(func)
-    async def wrapper(*args):
+    async def wrapper(*args, **kwargs):
         obj = args[0]
         ctx = args[1]
         if ctx.guild.id in obj.added_servers:

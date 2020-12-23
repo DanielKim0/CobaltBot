@@ -59,7 +59,6 @@ class PokerCog(CobaltCog):
             locks[name] = asyncio.Lock()
         return locks
 
-    # do by server instead of name
     @commands.command(name="create_poker")
     @check_valid_command
     @check_created_game(False)
@@ -71,6 +70,7 @@ class PokerCog(CobaltCog):
             await ctx.send("Invalid poker name: name already exists!")
             return
         
+        self.locks[str(ctx.guild.id)] = asyncio.Lock()
         async with self.locks[str(ctx.guild.id)]:
             with open(path, "w") as f:
                 data = dict()
@@ -91,14 +91,16 @@ class PokerCog(CobaltCog):
         
         async with self.locks[str(ctx.guild.id)]:
             os.remove(path)
+        self.locks.pop(str(ctx.guild.id))
 
     @commands.command(name="money")
     @check_valid_command
-    @check_created_game(True)
     async def money(self, ctx, name: str, amount: int):
         """Method that updates a player's monetary total by an amount."""
 
-        self.updates[name] = amount
+        if str(ctx.guild.id) not in self.updates:
+            self.updates[str(ctx.guild.id)] = dict()
+        self.updates[str(ctx.guild.id)][name] = amount
             
     @commands.command(name="update_poker")
     @check_valid_command
@@ -113,15 +115,15 @@ class PokerCog(CobaltCog):
 
             with open(path, "w") as f:
                 for name in data["balances"]:
-                    if name not in self.updates:
+                    if name not in self.updates[str(ctx.guild.id)]:
                         data["balances"][name].append(data["balances"][name][-1])
                     else:
-                        data["balances"][name].append(data["balances"][name][-1] + self.updates[name])
-                        self.updates.pop(name)
+                        data["balances"][name].append(data["balances"][name][-1] + self.updates[str(ctx.guild.id)][name])
+                        self.updates[str(ctx.guild.id)].pop(name)
                     
-                for name in self.updates:
+                for name in self.updates[str(ctx.guild.id)]:
                     data["balances"][name] = [0] * data["rounds"]
-                    data["balances"][name].append(self.updates[name])
+                    data["balances"][name].append(self.updates[str(ctx.guild.id)][name])
                 data["rounds"] += 1
                 json.dump(data, f)
 

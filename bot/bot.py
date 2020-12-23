@@ -48,14 +48,14 @@ class CobaltBot(commands.Bot):
         load_dotenv()
         self.token = os.getenv('DISCORD_TOKEN')
 
-    # async def on_ready(self):
-    #     serv = os.getenv('DISCORD_SERVER')
-    #     server = discord.utils.get(self.guilds, name=serv)
+    async def on_ready(self):
+        serv = os.getenv('DISCORD_SERVER')
+        server = discord.utils.get(self.guilds, name=serv)
 
-    #     print(
-    #         f'{self.user} is connected to the following server:\n'
-    #         f'{server.name}(id: {server.id})'
-    #     )
+        print(
+            f'{self.user} is connected to the following server:\n'
+            f'{server.name}(id: {server.id})'
+        )
 
     async def on_error(self, event, *args, **kwargs):
         """Simple error function that logs errors and raises all but unhandled messages."""

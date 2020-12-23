@@ -169,3 +169,18 @@ class PokerCog(CobaltCog):
                 message += tabulate([names, balances], tablefmt="grid")
                 message += "\n```"
                 await ctx.send(message)
+
+    @commands.command(name="changes")
+    @check_valid_command
+    @check_created_game(True)
+    async def changes(self, ctx):
+        """Method that fetches and displays a server's current staged poker changes."""
+
+        if str(ctx.guild.id) in self.updates:
+            message = "```\n"
+            message += "Current round:\n"
+            message += tabulate([self.updates[str(ctx.guild.id)].keys(), self.updates[str(ctx.guild.id)].values()], tablefmt="grid")
+            message += "\n```"
+            await ctx.send(message)
+        else:
+            await ctx.send("This server has no staged balance changes.")

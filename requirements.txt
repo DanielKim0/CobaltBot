@@ -1,0 +1,10 @@
+pillow
+pandas
+requests-html
+discord
+python-dotenv
+python-dateutil
+python-a2s
+python-valve
+cassiopeia
+aiofiles

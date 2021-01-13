@@ -126,6 +126,18 @@ class SMT_Demon_Parser:
                 if (elem.hasAttribute("colspan") && elem.getAttribute("colspan") == 7) {
                     elem.click();
                 }
+
+                var navs = document.getElementsByClassName("nav");
+                var elem = navs[navs.length-1];
+                if (elem.hasAttribute("colspan") && elem.getAttribute("colspan") == 7) {
+                    elem.click();
+                }
+
+                var navs = document.getElementsByClassName("nav");
+                var elem = navs[navs.length-1];
+                if (elem.hasAttribute("colspan") && elem.getAttribute("colspan") == 7) {
+                    elem.click();
+                }
             }
         """
         res = self.render_html(link, script=script)
@@ -192,8 +204,7 @@ class SMT_Demon_Parser:
             f.write(json.dumps(names))
 
 if __name__ == "__main__":
-    # games = ["smt4", "smt4f", "p3p", "p4g", "p5r", "p5s"
-    games = ["smt4"]
+    games = ["smt3", "smt4", "smt4f", "p3p", "p4g", "p5r"]
     for game in games:
         print("Game: " + game)
         p = SMT_Demon_Parser(game, "results")

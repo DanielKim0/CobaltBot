@@ -21,7 +21,7 @@ def check_valid_command(func):
     async def wrapper(*args, **kwargs):
         obj = args[0]
         ctx = args[1]
-        if ctx.guild.id in obj.added_servers:
+        if ctx.guild and not ctx.guild.id in obj.added_servers:
             return await func(*args)
         else:
             return None

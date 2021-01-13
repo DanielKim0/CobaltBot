@@ -134,6 +134,9 @@ class SMT_Demon_Parser:
         for tr in trs:
             data.append([item.text for item in tr.find("td")])
         
+        if not data or (len(data) == 1 and len(data[0]) == 1):
+            return {"fissions": {}, "special": False}
+
         special = len(data[0]) == 4
         if special:
             return {"fissions": [data[i][-1] for i in range(len(data))], "special": special}
@@ -154,6 +157,9 @@ class SMT_Demon_Parser:
         trs = res.html.find("app-smt-fusions")[0].find("tbody")[-1].find("tr")
         for tr in trs:
             data.append([item.text for item in tr.find("td")])
+
+        if not data or (len(data) == 1 and len(data[0]) == 1):
+            return {}
 
         fusions = dict()
         for item in data:
@@ -186,7 +192,8 @@ class SMT_Demon_Parser:
             f.write(json.dumps(names))
 
 if __name__ == "__main__":
-    games = ["smt3", "smt4", "smt4f", "p3p", "p4g", "p5r", "p5s"]
+    # games = ["smt4", "smt4f", "p3p", "p4g", "p5r", "p5s"
+    games = ["smt4"]
     for game in games:
         print("Game: " + game)
         p = SMT_Demon_Parser(game, "results")

@@ -4,6 +4,7 @@ import json
 import aiofiles
 from dotenv import load_dotenv
 from discord.ext import commands
+from discord.ext.commands import guild_only
 import asyncio
 
 def fetch_prefix(bot, message):
@@ -43,7 +44,7 @@ class PrefixCog(commands.Cog):
         return ctx.guild
 
     @commands.command(name="prefix", help="Lists the prefixes the server is using.")
-    @guild_only
+    @guild_only()
     async def prefix(self, ctx):
         """Method that responds to a command with the prefixes the server is using."""
 
@@ -56,7 +57,7 @@ class PrefixCog(commands.Cog):
                 await ctx.send("This server is using the default prefix: !")
 
     @commands.command(name="add_prefix", help="Adds an inputted prefix to a server.")
-    @guild_only
+    @guild_only()
     @commands.has_permissions(administrator=True)
     async def add_prefix(self, ctx, prefix: str):
         """Method that adds an inputted prefix to a server."""
@@ -72,7 +73,7 @@ class PrefixCog(commands.Cog):
             await self.save_prefix(self.data)
 
     @commands.command(name="set_prefix", help="Sets an inputted prefix to a server.")
-    @guild_only
+    @guild_only()
     @commands.has_permissions(administrator=True)
     async def set_prefix(self, ctx, prefix: str):
         """Method that sets an inputted prefix to a server."""
@@ -84,7 +85,7 @@ class PrefixCog(commands.Cog):
             await self.save_prefix(self.data)
 
     @commands.command(name="reset_prefix", help="Resets the prefix list on a server to the default.")
-    @guild_only
+    @guild_only()
     @commands.has_permissions(administrator=True)
     async def reset_prefix(self, ctx):
         """Method that resets the prefix list on a server to the default."""
@@ -99,7 +100,7 @@ class PrefixCog(commands.Cog):
                 await ctx.send("This server is already set to the default prefix: !")
 
     @commands.command(name="remove_prefix", help="Removes an inputted prefix from a server.")
-    @guild_only
+    @guild_only()
     @commands.has_permissions(administrator=True)
     async def remove_prefix(self, ctx, prefix: str):
         """Method that removes an inputted prefix from a server."""

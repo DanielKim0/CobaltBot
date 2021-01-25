@@ -4,6 +4,7 @@ import json
 import aiofiles
 from dotenv import load_dotenv
 from discord.ext import commands
+from discord.ext.commands import guild_only
 import asyncio
 
 class BasicCog(commands.Cog):
@@ -21,7 +22,7 @@ class BasicCog(commands.Cog):
         self.lock = asyncio.Lock()
 
     @commands.command(name="add_cog", help="Adds a valid cog to the permissions list.")
-    @guild_only
+    @guild_only()
     @commands.has_permissions(administrator=True)
     async def add_cog(self, ctx, cog: str):
         """Wrapper method that adds a server to a cog's permissions list, allowing the server to use it.
@@ -37,7 +38,7 @@ class BasicCog(commands.Cog):
             await self.save_cogs()
 
     @commands.command(name="remove_cog", help="Removes a valid cog from the permissions list.")
-    @guild_only
+    @guild_only()
     @commands.has_permissions(administrator=True)
     async def remove_cog(self, ctx, cog: str):
         """Wrapper method that removes a server to a cog's permissions list, disallowing the server to use it.
@@ -53,7 +54,7 @@ class BasicCog(commands.Cog):
             await self.save_cogs()
     
     @commands.command(name="list_cogs", help="Lists all the cogs allowed on your server.")
-    @guild_only
+    @guild_only()
     @commands.has_permissions(administrator=True)
     async def list_cogs(self, ctx):
         """Method that lists all of the cogs that a server has added to its permissions list."""

@@ -98,10 +98,6 @@ class LeagueCog(CobaltCog):
         req = requests.get("https://na.whatismymmr.com/api/v1/summoner?name=" + name, headers=self.header)
         text = ast.literal_eval(req.text.replace("null", "\"\"").replace("true", "True").replace("false", "False"))
 
-        if "error" in text:
-            await ctx.send("Error: invalid username!")
-            return 
-
         warn = False
         for queue in text:
             results[0].extend([queue + " mmr", queue + " %"])
@@ -178,6 +174,10 @@ class LeagueCog(CobaltCog):
         """Method that gets a summoner's statistics, makes them into tables, and sends them on discord."""
 
         player = cass.get_summoner(name=name)
+        if not player or not player.exists:
+            await ctx.send("Error: invalid player!")
+            return
+
         names = ["User Data", "Champion Data", "MMR Data"]
         results = []
 

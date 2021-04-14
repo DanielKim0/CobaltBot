@@ -36,7 +36,7 @@ class TF2Cog(CobaltCog):
 
         with valve.source.master_server.MasterServerQuerier(timeout=1) as msq:
             servers = [x for x in msq.find(gamedir="tf", region=region, empty=False)]
-            with Pool() as p:
+            with Pool(2) as p:
                 stats = p.map(lookup_address, servers)
                 return stats
 

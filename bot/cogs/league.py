@@ -100,9 +100,11 @@ class LeagueCog(CobaltCog):
 
         warn = False
         for queue in text:
+            if queue == "error":
+                return None, None
             results[0].extend([queue + " mmr", queue + " %"])
 
-            if text[queue]["avg"]:
+            if "avg" in text[queue]:
                 average = str(text[queue]["avg"])
                 if text[queue]["warn"]:
                     average += "*"
@@ -178,12 +180,14 @@ class LeagueCog(CobaltCog):
             await ctx.send("Error: invalid player!")
             return
 
-        names = ["User Data", "Champion Data", "MMR Data"]
+        names = ["User Data", "Champion Data"]
         results = []
 
         results.extend(await self.get_cass(player))
         mmr, warn = await self.get_mmr(name)
-        results.append(mmr)
+        if mmr: 
+            names.append("MMR Data")
+            results.append(mmr)
         match = await self.get_last_match(player)
         if match:
             names.append("Last Match Stats")
